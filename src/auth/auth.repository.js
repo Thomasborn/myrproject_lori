@@ -1,10 +1,12 @@
 
 const prisma = require("../db");
-async function findByUsernameAndPassword(username, password) {
+const bcrypt = require('bcrypt')
+const userService = require('./auth.service'); // Import the user repository
+async function findByEmailAndPassword(email, password) {
     try {
       const user = await prisma.user.findFirst({
         where: {
-          username,
+          email,
           password, // Replace with the actual user ID or use a different field if necessary
         },
       });
@@ -13,14 +15,14 @@ async function findByUsernameAndPassword(username, password) {
       return user;
     } catch (error) {
       // Handle the error here, and you can choose to log it
-      console.error('Error in findByUsernameAndPassword:', error);
+      console.error('Error in findByEmailAndPassword:', error);
       throw error; // You can rethrow the error to let the caller handle it
     }
 }
-const findUserByUsername = async (username) => {
+const findUserByemail = async (email) => {
     const user = await prisma.user.findFirst({
       where: {
-        username,
+        email,
       },
     });
   
@@ -63,10 +65,10 @@ const insertProduksiRepo = async (newprodukData) => {
   });
   return produksi
 };
-const getHashedPasswordByUsername = async (username) => {
+const getHashedPasswordByemail = async (email) => {
   const user = await prisma.user.findFirst({
     where: {
-      username: username,
+      email: email,
     },
     select: {
       password: true, // Select only the hashedPassword field
@@ -79,7 +81,7 @@ const getHashedPasswordByUsername = async (username) => {
 
   return null; // Return null if the user doesn't exist
 };
-const getForgetPassword = async (username) => {
+const getForgetPassword = async (email) => {
   const user = await prisma.user.findFirst({
     where: {
       email: email,
@@ -93,33 +95,51 @@ const getForgetPassword = async (username) => {
 
   return null; // Return null if the user doesn't exist
 };
-  // Function to create a user
-  const createUser = async (username, password) => {
-    const existingUser = await findUserByUsername(username);
 
+// Function to hash the user's password
+const hashPassword= async (password)=> {
+  try {
+    // const saltRounds = bcrypt.genSalt(10); // The number of salt rounds (adjust as needed)
+    const saltRounds = (10); // The number of salt rounds (adjust as needed)
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    return hashedPassword;
+  } catch (error) {
+    throw error;
+  }
+}
+  // Function to create a user
+  const createUser = async (dataUser) => {
+    const {email,password,karyawan_id}=dataUser;
+    //mencari user berdasarkan email yang digunakan
+    const existingUser = await findUserByemail(email);
+    //melakukan generate hash untuk password yang lebih aman
+    const hashedPassword = await hashPassword(password);
+    //mengecek apakah email sudah ada
     if (existingUser) {
-      throw new Error('Username sudah ada'); // Throw an error with a custom message
+      throw new Error('email sudah ada'); // Throw an error with a custom message
     }
-  
+    
     try {
       // Create the new user
       const user = await prisma.user.create({
         data: {
-          username,
-          password,
-          nama_lengkap: '',
-          kontak: '',
-          email: '',
+          email,
+          password:hashedPassword,
+          karyawan:{
+            connect:{
+              id:parseInt(karyawan_id)
+            }
+          }
         },
       });
   
       return user;
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientValidationError) {
+      if (error) {
         throw new Error('Validation error: ' + error.message);
       } else {
         throw error;
       }
     }
   };
-module.exports = { findByUsernameAndPassword, createUser,findUserByUsername,getHashedPasswordByUsername,getForgetPassword };
+module.exports = { findByEmailAndPassword, createUser,findUserByemail,getHashedPasswordByemail,getForgetPassword };

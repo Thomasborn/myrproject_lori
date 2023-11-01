@@ -10,26 +10,39 @@ const multer = require("multer");
 const bcrypt = require('bcrypt')
 const upload = multer();
 const authService = require('../auth/auth.service'); 
+const authKaryawan = require('../karyawan/karyawan.service'); 
 const router = express.Router();
 
 router.post("/login",upload.none(), async(req, res)=> {
  
   try {
-    const { username, password } = req.body;
-    const hashedPassword = await authService.checkUser(username);
+    const { email, password } = req.body;
+    const hashedPassword = await authService.checkPasswordByEmail(email);
   
     if (hashedPassword) {
       // Verify the user's password
       const isPasswordMatch = await authService.verifyPassword(password, hashedPassword);
   
       if (isPasswordMatch) {
-        const user = await authService.authenticateUser(username);
+        const user = await authService.authenticateUser(email);
+
+        // res.json({ message: 'Logged in successfully', user });
         
         if (user) {
           // Authentication successful
-          const token = authService.generateAuthToken(username);
-          const session =  req.session.user = user;
-        
+          const token = authService.generateAuthToken(email);
+          const {id,...karyawan} = await authKaryawan.getkaryawanById(user.karyawan_id);
+
+          if (!req.session.user) {
+            req.session.user = {}; // Initialize the user object if it doesn't exist
+          }
+          
+          req.session.user.email = email;
+          req.session.user.karyawan = karyawan;
+          
+          // Now you can use req.session.user.email and req.session.user.karyawan as needed.
+          const session = req.session;
+          
           res.cookie('authToken', token, { 
             httpOnly: true,
            
@@ -57,19 +70,20 @@ router.post("/login",upload.none(), async(req, res)=> {
 
 router.post("/register", upload.none(),async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
+    const dataUser = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ message: 'Username and password are required' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'email and password are required' });
     }
 
-    const user = await authService.registerUser(username, password);
+    const user = await authService.registerUser(dataUser);
 
     res.json({ message: 'Registered successfully', user });
   } catch (err) {
-    if (err.message === 'Username sudah ada') {
-      // Handle the case where the username already exists
-      return res.status(400).json({ message: 'Username sudah ada' });
+    if (err.message === 'email sudah ada') {
+      // Handle the case where the email already exists
+      return res.status(400).json({ message: 'email sudah ada' });
     } else {
       // Handle other errors
       console.error('Error in user registration:', err);
@@ -110,14 +124,14 @@ const transporter = nodemailer.createTransport({
   },});
 router.post("/forget-password", upload.none(),async (req, res) => {
   try {
-    const { username } = req.body;
+    const { email } = req.body;
 
-    if (!username.localeCompare(compareString, locales, {})) {
+    if (!email.localeCompare(compareString, locales, {})) {
       return res.status(400).json({ message: 'Email are required' });
     }
     
-    const user = await authService.checkEmail(username);
-    if(!user.username){
+    const user = await authService.checkEmail(email);
+    if(!user.email){
 
       return res.status(400).json({ message: 'Email tidak ada' });
     } 
@@ -141,7 +155,7 @@ router.post("/forget-password", upload.none(),async (req, res) => {
   
   } catch (err) {
     if (err) {
-      // Handle the case where the username already exists
+      // Handle the case where the email already exists
       return res.status(400).json({ message:err.message });
     } else {
       // Handle other errors

@@ -1,6 +1,7 @@
 const express = require("express");
 // const { app, prisma } = require("./server"); // Import the Express app and Prisma client
 const router = express.Router();
+const verifyAccess = require("../middleware/access");
 const ProdukController = require("../produk_item/produk_item.controller")
 const ProduksiController = require("../produksi/produksi.controller")
 const PengecekanController = require("../pengecekan/pengecekan.controller")
@@ -15,6 +16,8 @@ const GawanganController = require("../gawangan/gawangan.controller")
 const PembelianController = require("../pembelian/pembelian.controller")
 const UserController = require("../user/user.controller")
 const AuthController = require("../auth/auth.controller")
+const FungsiController = require("../fungsi/fungsi.controller")
+const HakAksesController = require("../hak_akses/hak_akses.controller")
 
 router.use("/produks",ProdukController);
 router.use("/kategoris",KategoriController);
@@ -29,4 +32,6 @@ router.use("/outlets",OutletController);
 router.use("/gawangans",GawanganController);
 router.use("/pembelians",PembelianController);
 router.use("/users",UserController);
+router.use("/fungsi",FungsiController);
+router.use("/hak-akses",HakAksesController);
 module.exports=router;

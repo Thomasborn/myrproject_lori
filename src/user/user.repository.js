@@ -18,10 +18,14 @@ const finduserById = async (id) => {
 };
 const insertuserRepo = async (newuserData) => {
   
-  const kategori = newuserData.kategori;
+  const email = newuserData.email;
+  const password = newuserData.password;
+  const karyawan_id = newuserData.karyawan_id;
   const user = await prisma.user.create({
     data: {
-      kategori,
+      email,
+      password,
+      karyawan_id,
 
       },
   });
