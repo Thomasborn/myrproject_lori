@@ -18,10 +18,12 @@ const findProdukById = async (id) => {
 };
 const insertProdukRepo = async (newprodukData) => {
   
-  const kategori = newprodukData.kategori;
+  const nama = newprodukData.nama;
+  const tipe = newprodukData.tipe;
   const kategori_produk = await prisma.kategori_produk.create({
     data: {
-      kategori,
+      nama,
+      tipe: ""|| tipe,
 
       },
   });

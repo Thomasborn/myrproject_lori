@@ -21,7 +21,7 @@ const prisma = require("../db");
   const checkAuth = async (req, res, next) => {
     // You should obtain the user's role_id from your authentication mechanism
     // const userData = 1; // Replace with the actual user's role_id
-      const userData = parseInt(req.session.user.karyawan.role_id);
+      const userData = parseInt(req.session.user.role_id);
   
     try {
       const permissions = await role_permission(userData);

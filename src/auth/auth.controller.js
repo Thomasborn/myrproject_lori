@@ -38,7 +38,7 @@ router.post("/login",upload.none(), async(req, res)=> {
           }
           
           req.session.user.email = email;
-          req.session.user.karyawan = karyawan;
+          req.session.user.role_id = user.role_id;
           
           // Now you can use req.session.user.email and req.session.user.karyawan as needed.
           const session = req.session;
