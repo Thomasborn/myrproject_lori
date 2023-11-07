@@ -109,7 +109,7 @@ const hashPassword= async (password)=> {
 }
   // Function to create a user
   const createUser = async (dataUser) => {
-    const {email,password,karyawan_id}=dataUser;
+    const {email,password,karyawan_id,role_id}=dataUser;
     //mencari user berdasarkan email yang digunakan
     const existingUser = await findUserByemail(email);
     //melakukan generate hash untuk password yang lebih aman
@@ -129,7 +129,12 @@ const hashPassword= async (password)=> {
             connect:{
               id:parseInt(karyawan_id)
             }
-          }
+            },
+            role:{
+              connect:{
+                id:parseInt(role_id)
+              }
+            }
         },
       });
   

@@ -1,7 +1,7 @@
 // services/authService.js
 const bcrypt          = require('bcrypt')
 const jwt             = require('jsonwebtoken');
-const secretKey       = process.env.Key;; // Replace with your secret key
+const secretKey       = process.env.KEY; // Replace with your secret key
 // const secretKey = require('../secret_key/secret_key'); // Replace with your secret key
 const userRepository  = require('./auth.repository'); // Import the user repository
 
@@ -25,7 +25,7 @@ const authenticateUser= async (email, password)=> {
 
 function generateAuthToken(email) {
   try {
-    const token = jwt.sign({ email: email }, secretKey.Key);
+    const token = jwt.sign({ email: email }, secretKey);
     return token;
   } catch (error) {
     // You can handle and log the error here or rethrow it
@@ -49,7 +49,7 @@ const hashPassword= async (password)=> {
   const registerUser = async (dataUser) => {
   
   
-      // Mmembuat user pada repository
+      // membuat user pada repository
       const user = userRepository.createUser(dataUser);
     
       return user;

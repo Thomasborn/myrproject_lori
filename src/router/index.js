@@ -18,6 +18,8 @@ const UserController = require("../user/user.controller")
 const AuthController = require("../auth/auth.controller")
 const FungsiController = require("../fungsi/fungsi.controller")
 const HakAksesController = require("../hak_akses/hak_akses.controller")
+const ModelProdukController = require("../model_produk/model_produk.controller")
+const KategoriProdukController = require("../kategori_produk/kategori_produk.controller")
 
 router.use("/produks",ProdukController);
 router.use("/kategoris",KategoriController);
@@ -33,5 +35,7 @@ router.use("/gawangans",GawanganController);
 router.use("/pembelians",PembelianController);
 router.use("/users",UserController);
 router.use("/fungsi",FungsiController);
+router.use("/model-produk",ModelProdukController);
+router.use("/kategori-produk",KategoriController);
 router.use("/hak-akses",HakAksesController);
 module.exports=router;

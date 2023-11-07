@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const secretKey = require('../secret_key/secret_key');
+const secretKey       = process.env.Key;
 const prisma = require("../db");
 
 
@@ -17,11 +17,35 @@ const prisma = require("../db");
       return [];
     }
   };
+  const adminMiddleware = (req, res, next) => {
+    // Check if the user has admin permissions
+    const url = req.url;
+    const permissions =  req.userPermissions;
+    
+      res.status(401).json({ message: `Akses tidak dimiliki untuk ${url}`, permissions });
+    
+    
+  };
+  
+  // Define other role-specific middleware functions as needed
+  const ownerMiddleware = (req, res, next) => {
+    next();
+    // Implement logic for the owner role
+  };
+  
+  const qcMiddleware = (req, res, next) => {
+    // Implement logic for the QC role
+  };
+  
+  const penjahitMiddleware = (req, res, next) => {
+    // Implement logic for the penjahit role
+  };
   
   const checkAuth = async (req, res, next) => {
     // You should obtain the user's role_id from your authentication mechanism
     // const userData = 1; // Replace with the actual user's role_id
       const userData = parseInt(req.session.user.role_id);
+      // res.json({ message: 'Akses tidak dimiliki 2',userData });
   
     try {
       const permissions = await role_permission(userData);
@@ -30,45 +54,35 @@ const prisma = require("../db");
         // User has the required permissions
       const role_permission=  req.userPermissions = permissions;
       switch (userData) {
-            case 1:
-                //for admin
-              const admin = role_permission;
-              res.send({data:admin, message: "hak_akses successfully" });
-              // next();
-            
-              break;
-            
-            case 2:
-              const owner = role_permission(userData);
-              next();
-              
-              break;
-              
-            case 3:
-              const qc = role_permission(userData);
-              next();
-      
-              break;
-      
-            case 4:
-              const penjahit = role_permission(userData);
-              next();
-      
-              break;
-          
-            default:
-              return res.status(401).json({ message: 'Akses tidak dimiliki' ,user:userData});
-      
-              break;
-          }
-        
-       
-      
+        case 1:
+          // Owner
+          ownerMiddleware(req, res, next);
+          break;
+
+        case 2:
+          // Owner
+          adminMiddleware(req, res, next);
+          break;
+
+        case 3:
+          // QC
+          qcMiddleware(req, res, next);
+          break;
+
+        case 4:
+          // Penjahit
+          penjahitMiddleware(req, res, next);
+          break;
+
+        default:
+          res.status(401).json({ message: 'Akses tidak dimiliki 1' });
+          break;
+      }
       // Store permissions in the request object
       // res.send({data:role_permission})// Proceed to the next middleware or route
       } else {
         // User doesn't have the required permissions
-        res.status(401).json({ message: 'Akses tidak dimiliki' });
+        res.status(401).json({ message: 'Akses tidak dimiliki 2' ,userData});
       }
     } catch (error) {
       // Handle any potential errors, e.g., fetching permissions failed
