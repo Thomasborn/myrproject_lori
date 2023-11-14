@@ -20,6 +20,7 @@ const FungsiController = require("../fungsi/fungsi.controller")
 const HakAksesController = require("../hak_akses/hak_akses.controller")
 const ModelProdukController = require("../model_produk/model_produk.controller")
 const KategoriProdukController = require("../kategori_produk/kategori_produk.controller")
+const QcProduksiController = require("../qc_produksi/qc_produksi.controller")
 
 router.use("/produks",ProdukController);
 router.use("/kategoris",KategoriController);
@@ -38,4 +39,5 @@ router.use("/fungsi",FungsiController);
 router.use("/model-produk",ModelProdukController);
 router.use("/kategori-produk",KategoriController);
 router.use("/hak-akses",HakAksesController);
+router.use("/qc-produksi",QcProduksiController);
 module.exports=router;

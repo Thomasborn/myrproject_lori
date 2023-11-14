@@ -23,7 +23,6 @@ const insertkaryawanRepo = async (newkaryawanData) => {
   const alamat = newkaryawanData.alamat;
   const kontak = newkaryawanData.kontak;
   const tanggal_lahir = newkaryawanData.tanggal_lahir;
-  const role_id = newkaryawanData.role_id;
   const no_rekening = newkaryawanData.no_rekening;
   const karyawan = await prisma.karyawan.create({
     data: {
@@ -32,7 +31,6 @@ const insertkaryawanRepo = async (newkaryawanData) => {
       alamat,
       kontak,
       tanggal_lahir,
-      role_id,
       no_rekening
       },
   });
