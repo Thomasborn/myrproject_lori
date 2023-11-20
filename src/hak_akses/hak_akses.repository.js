@@ -16,6 +16,21 @@ const findhak_aksesById = async (id) => {
   
   return hak_akses;
 };
+
+const findHakAksesByRoleId = async (id) => {
+  const hak_akses = await prisma.hak_akses.findMany({
+    where: {
+      role_id:{
+        equals: id
+      },
+    },include:{
+      fungsi:true,
+      akses:true
+    }
+  });
+  
+  return hak_akses;
+};
 const inserthak_aksesRepo = async (newhak_aksesData) => {
   
   const nama = newhak_aksesData.nama;
@@ -77,6 +92,7 @@ const deletehak_aksesByIdRepo = async(id)=>{
 module.exports={
   findhak_akses,
   findhak_aksesById,
+  findHakAksesByRoleId,
   inserthak_aksesRepo,
   updatehak_aksesRepo,
   deletehak_aksesByIdRepo

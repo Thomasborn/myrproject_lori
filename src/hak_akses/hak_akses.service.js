@@ -1,5 +1,5 @@
 const prisma = require("../db");
-const { findhak_akses, findhak_aksesById, inserthak_aksesRepo, updatehak_aksesRepo, deletehak_aksesByIdRepo } = require("./hak_akses.repository");
+const { findhak_akses, findhak_aksesById,findHakAksesByRoleId, inserthak_aksesRepo, updatehak_aksesRepo, deletehak_aksesByIdRepo } = require("./hak_akses.repository");
 
 const gethak_akses = async () => {
   const hak_akses = await findhak_akses();
@@ -10,6 +10,15 @@ const gethak_akses = async () => {
 
 const gethak_aksesById = async (id) => {
   const hak_akses = await findhak_aksesById(id);
+
+  if (!hak_akses) {
+    throw Error("hak_akses not found");
+  }
+
+  return hak_akses;
+};
+const getHakAksesByRoleId = async (id) => {
+  const hak_akses = await findHakAksesByRoleId(id);
 
   if (!hak_akses) {
     throw Error("hak_akses not found");
@@ -37,5 +46,6 @@ module.exports = {
   gethak_aksesById,
   inserthak_akses,
   updatedhak_akses,
+  getHakAksesByRoleId,
   deletehak_aksesById
 };

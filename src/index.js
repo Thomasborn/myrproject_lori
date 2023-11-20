@@ -40,7 +40,7 @@ app.use(
 app.use("/auth",AuthController);  
 // app.use("/",router);
 
-app.use("/",router);
+app.use("/",verifyAccess,router);
 
 // app.post("/produks", async (req, res) => {
 //     const newProdukData = req.body;

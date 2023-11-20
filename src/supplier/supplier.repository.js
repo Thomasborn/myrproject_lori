@@ -20,16 +20,17 @@ const insertsupplierRepo = async (newsupplierData) => {
   
   const kode = newsupplierData.kode;
 
-  const nama_supplier = newsupplierData.nama_supplier;
+  const nama = newsupplierData.nama;
   const alamat = newsupplierData.alamat;
   const kontak = newsupplierData.kontak;
   const no_rekening = newsupplierData.no_rekening;
   const supplier = await prisma.supplier.create({
     data: {
-      nama_supplier,
+      kode,
+      nama,
       alamat,
       kontak,
-      no_rekening,
+      no_rek:no_rekening,
     
       },
   });

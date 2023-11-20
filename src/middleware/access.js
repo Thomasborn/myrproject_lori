@@ -1,34 +1,42 @@
 const jwt = require('jsonwebtoken');
 const secretKey       = process.env.Key;
 const prisma = require("../db");
+const hak_akses = require("../hak_akses/hak_akses.service")
 
-
-  const role_permission = async (userData) => {
-    try {
-      const permissions = await prisma.hak_akses.findMany({
-        where: {
-          role_id: userData, // Assuming `userData` contains the user's role_id
-        },
-      });
-      return permissions;
-    } catch (error) {
-      // Handle any potential errors, e.g., database query errors
-      console.error('Error fetching user permissions:', error);
-      return [];
-    }
-  };
+  // const role_permission = async (userData) => {
+  //   try {
+  //     const permissions = await prisma.hak_akses.findMany({
+  //       where: {
+  //         role_id: userData, // Assuming `userData` contains the user's role_id
+  //       },
+  //     });
+  //     return permissions;
+  //   } catch (error) {
+  //     // Handle any potential errors, e.g., database query errors
+  //     console.error('Error fetching user permissions:', error);
+  //     return [];
+  //   }
+  // };
   const adminMiddleware = (req, res, next) => {
     // Check if the user has admin permissions
-    const url = req.url;
-    const permissions =  req.userPermissions;
+    // const url = req.url;
+    // const permissions =  req.userPermissions;
+    // console.log(permissions);
     
-      res.status(401).json({ message: `Akses tidak dimiliki untuk ${url}`, permissions });
+    //   res.status(401).json({ message: `Akses tidak dimiliki untuk ${url}`,permissions: permissions });
     
     
   };
   
   // Define other role-specific middleware functions as needed
   const ownerMiddleware = (req, res, next) => {
+    const url = req.url;
+    const permissions =  req.userPermissions;
+    console.log(permissions);
+    
+      res.status(401).json({ message: `Akses tidak dimiliki untuk ${url}`,permissions: permissions });
+    
+  
     next();
     // Implement logic for the owner role
   };
@@ -48,11 +56,22 @@ const prisma = require("../db");
       // res.json({ message: 'Akses tidak dimiliki 2',userData });
   
     try {
-      const permissions = await role_permission(userData);
+      const cacheKey = `permissions_${roleId}`;
   
-      if (permissions.length > 0) {
-        // User has the required permissions
-      const role_permission=  req.userPermissions = permissions;
+      if(userData){
+      // Check if the permissions are cached
+      const cachedPermissions = memoryCache.get(cacheKey);
+      if (cachedPermissions) {
+        console.log('Fetching permissions from cache:', cachedPermissions);
+        return cachedPermissions;
+      }
+    
+      // If not cached, fetch permissions from the database
+      const permissions = await hak_akses.getHakAksesByRoleId(roleId);
+    
+      // Cache the permissions
+      memoryCache.put(cacheKey, permissions, cacheDuration);
+    
       switch (userData) {
         case 1:
           // Owner

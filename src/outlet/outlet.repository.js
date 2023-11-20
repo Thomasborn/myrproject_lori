@@ -18,14 +18,29 @@ const findoutletById = async (id) => {
 };
 const insertoutletRepo = async (newoutletData) => {
   
-  const kategori = newoutletData.kategori;
-  const outlet = await prisma.outlet.create({
-    data: {
-      kategori,
+  const {
+    nama,
+    no_telp,
+    jam_operasional,
+    tanggal_buka,
+    status,
+    deskripsi,
+    alamat,
+  } = newoutletData;
 
-      },
+  // Perform the insert operation using Prisma
+  const insertedOutlet = await prisma.outlet.create({
+    data: {
+      nama,
+      no_telp,
+      jam_operasional,
+      tanggal_buka,
+      status,
+      deskripsi,
+      alamat,
+    },
   });
-  return outlet
+  return insertedOutlet;
 }
 const updateoutletRepo = async (id,updatedoutletData) => {
         const existingoutlet = await prisma.outlet.findUnique({

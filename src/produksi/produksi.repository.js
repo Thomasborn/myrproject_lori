@@ -21,10 +21,21 @@ const findProduk = async () => {
 };
 
 const findProduksiById = async (id) => {
-  const produksi = await prisma.produksi.findUnique({
+  const produksi = await prisma.produksi.findFirst({
     where: {
       id,
     },
+    include: {
+      // detail_model_produk: true,
+      detail_model_produk: {
+        include: {
+          // ukuran: true,
+          
+          model_produk: true,
+          // Add more specific fields here
+        }},
+      user: true
+    }
   });
   
   return produksi;
