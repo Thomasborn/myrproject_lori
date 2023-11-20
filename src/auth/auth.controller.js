@@ -12,6 +12,9 @@ const upload = multer();
 const authService = require('../auth/auth.service'); 
 const authKaryawan = require('../karyawan/karyawan.service'); 
 const router = express.Router();
+const NodeCache = require("node-cache")
+const permissionsCache = new NodeCache();
+
 
 router.post("/login",upload.none(), async(req, res)=> {
  
@@ -104,7 +107,7 @@ router.get('/logout', (req, res) => {
     // Clear the session cookie by setting its expiration date to the past
    });
     res.clearCookie('connect.sid');
-
+    permissionsCache.flushAll();
 
   res.json({ message: `Logout success with '${cookieName}' dihapus` });
 });
@@ -122,37 +125,60 @@ const transporter = nodemailer.createTransport({
     user: 'assaglow69@gmail.com',
     pass: 'minzpro8790x',
   },});
-router.post("/forget-password", upload.none(),async (req, res) => {
-  try {
-    const { email } = req.body;
+  const sendResetEmail = (email, token) => {
+    const resetLink = `http://localhost:3008/reset-password?token=${token}`;
 
-    if (!email.localeCompare(compareString, locales, {})) {
-      return res.status(400).json({ message: 'Email are required' });
-    }
-    
-    const user = await authService.checkEmail(email);
-    if(!user.email){
-
-      return res.status(400).json({ message: 'Email tidak ada' });
-    } 
-    const resetToken = generateResetToken();
-    resetTokens.set(email, resetToken);
+    // Replace with your email configuration
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'assaglow69@gmail.com',
+        pass: 'minzpro8790x',
+      },
+    });
   
     const mailOptions = {
       from: 'assaglow69@gmail.com',
       to: email,
       subject: 'Password Reset',
-      text: `Untuk melakukan reset lakukan dengan mengakses link: http://localhost:3008/reset-password/${resetToken}`,
+      text: `Click on the following link to reset your password: ${resetLink}`,
     };
+  
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Email not sent' });
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
       }
-  
-      res.status(200).json({ message: 'Password reset email sent successfully' });
+    })};  
+
+    const generateToken = () => {
+      return crypto.randomBytes(20).toString('hex');
+    };
+    const tokenStorage = {};
+router.post("/forget-password", upload.none(),async (req, res) => {
+  try{
+    const { email } = req.body;
+
+    // Check if the email exists in the database
+    const user = await prisma.user.findUnique({
+      where: { email },
     });
   
+    if (user) {
+      // Generate a token and store it for later verification
+      const token = generateToken();
+      tokenStorage[email] = {
+        token,
+        expires: Date.now() + 3600000, // 1 hour in milliseconds
+      };
+      // Send an email with the reset link
+      sendResetEmail(email, token);
+  
+      res.status(200).json({ message: 'Password reset email sent successfully' });
+    } else {
+      res.status(400).json({ message: 'Email address not found' });
+    }
   } catch (err) {
     if (err) {
       // Handle the case where the email already exists
@@ -164,42 +190,52 @@ router.post("/forget-password", upload.none(),async (req, res) => {
     }
 }});
 
-router.post('/reset-password/:token', (req, res) => {
-  const { token } = req.params;
-  const { password } = req.body;
+router.post('/reset-password/:token', async (req, res) => {
+  const { email, token, newPassword } = req.body;
 
-  // Find the email associated with the reset token
-  // and locate the user in your database
-  const email = [...resetTokens.keys()].find(
-    (key) => resetTokens.get(key) === token
-  );
+  // Verify token and update password
+  const storedToken = tokenStorage[email];
 
-  if (!email) {
-    return res.status(400).json({ message: 'Invalid token' });
+  if (storedToken && storedToken === token) {
+    try {
+      // Update the password in the database
+      await prisma.user.update({
+        where: { email },
+        data: { password: newPassword },
+      });
+
+      // Clear the token after password reset
+      delete tokenStorage[email];
+
+      return res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+      console.error('Error updating password:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
   }
 
-  // Reset the user's password in your database
-  // Don't forget to remove the reset token from your database or memory
-
-  res.status(200).json({ message: 'Password reset successfully' });
+  res.status(400).json({ message: 'Invalid token or email' });
 });
-router.get('/logout', (req, res) => {
-  const cookieName = 'authToken';
+// router.get('/logout', (req, res) => {
+//   const cookieName = 'authToken';
 
-  // Remove the cookie by setting its value to null and expiration date to the past
-  res.cookie(cookieName, null, { expires: new Date(0), httpOnly: true});
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Error destroying session:', err);
-      return res.status(500).json({ message: 'Internal Server Error' });
-    }
+//   // Remove the cookie by setting its value to null and expiration date to the past
+//   res.cookie(cookieName, null, { expires: new Date(0), httpOnly: true});
+//   req.session.destroy((err) => {
+//     if (err) {
+//       console.error('Error destroying session:', err);
+//       return res.status(500).json({ message: 'Internal Server Error' });
+//     }
     
-    // Clear the session cookie by setting its expiration date to the past
-   });
-    res.clearCookie('connect.sid');
+//     // Clear the session cookie by setting its expiration date to the past
+//    });
+//     res.clearCookie('connect.sid');
+ 
+//     // Clear the cache
+//     permissionsCache.flushAll();
 
 
-  res.json({ message: `Logout success with '${cookieName}' dihapus` });
-});
+//   res.json({ message: `Logout success with '${cookieName}' dihapus` });
+// });
 
 module.exports= router

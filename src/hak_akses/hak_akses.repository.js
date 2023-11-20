@@ -20,15 +20,23 @@ const findhak_aksesById = async (id) => {
 const findHakAksesByRoleId = async (id) => {
   const hak_akses = await prisma.hak_akses.findMany({
     where: {
-      role_id:{
-        equals: id
+      role_id: {
+        equals: id,
       },
-    },include:{
-      fungsi:true,
-      akses:true
-    }
+    },
+    select: {
+      fungsi: {
+        select: {
+          nama: true,
+        },
+      },
+      akses: {
+        select: {
+          nama: true,
+        },
+      },
+    },
   });
-  
   return hak_akses;
 };
 const inserthak_aksesRepo = async (newhak_aksesData) => {
