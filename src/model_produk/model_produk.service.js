@@ -1,6 +1,10 @@
 const prisma = require("../db");
-const { findModelProduk, findModelProdukById, insertModelProdukRepo, updateModelProdukRepo, deleteModelProdukByIdRepo, findAllModelProduk } = require("./model_produk.repository");
+const { findModelProduk, findFotoProduk,findModelProdukById, insertModelProdukRepo, updateModelProdukRepo,updatedFotoProdukRepo, deleteModelProdukByIdRepo, findAllModelProduk } = require("./model_produk.repository");
+const getFotoProduk = async (id) => {
+  const fotoProduk = await findFotoProduk(id);
 
+  return fotoProduk;
+};
 const getModelProduk = async () => {
   const model_produk = await findModelProduk();
 
@@ -15,9 +19,9 @@ const getAllModelProduk = async () => {
 const getModelProdukById = async (id) => {
   const model_produk = await findModelProdukById(id);
 
-  if (!model_produk) {
-    throw Error("ModelProduk not found");
-  }
+  // if (!model_produk) {
+  //   throw Error("ModelProduk not found");
+  // }
 
   return model_produk;
 };
@@ -36,11 +40,17 @@ const updatedModelProduk = async (id,updatedModelProdukData)=>{
   const model_produk = await updateModelProdukRepo(id,updatedModelProdukData);
   return model_produk;
 };
+const updatedFotoProduk = async (fotoProduk,updatedModelProdukData)=>{
+  const updatefotoProduk = await updatedFotoProdukRepo(fotoProduk,updatedModelProdukData);
+  return updatefotoProduk;
+};
 module.exports = {
   getModelProduk,
+  getFotoProduk,
   getModelProdukById,
   insertModelProduk,
   updatedModelProduk,
+  updatedFotoProduk,
   deleteModelProdukById,
   getAllModelProduk
 };

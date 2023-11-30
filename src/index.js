@@ -39,8 +39,8 @@ app.use(
   // app.use(bodyParser.json());
 app.use("/auth",AuthController);  
 // app.use("/",router);
-
-app.use("/",verifyAccess,router);
+app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use("/",router);
 
 // app.post("/produks", async (req, res) => {
 //     const newProdukData = req.body;

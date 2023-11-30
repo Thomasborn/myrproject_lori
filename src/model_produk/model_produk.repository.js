@@ -1,6 +1,8 @@
 
 const { PrismaClientValidationError } = require("@prisma/client/runtime/library");
 const prisma = require("../db");
+const fs = require("fs/promises");
+const path = require('path');
 const findModelProduk = async () => {
   const model_produk = await prisma.model_produk.findMany({
     include:{
@@ -9,6 +11,15 @@ const findModelProduk = async () => {
     },
   });
   return model_produk;
+};
+const findFotoProduk = async (id) => {
+  const fotoProduk = await prisma.foto_produk.findFirst({
+    where:{
+      id:id
+
+    },
+  });
+  return fotoProduk;
 };
 const findAllModelProduk = async () => {
   try {
@@ -172,7 +183,7 @@ const insertModelProdukRepo = async (newModelProdukData) => {
 
     const createdPhotos = await Promise.all(
       foto.map(async (imageUrl) => {
-        const imageUrls = ('/public/images/model-produk' + foto.filename);
+        const imageUrls = ('/public/images/model-produk/' + foto.filename);
         const createdPhoto = await prisma.foto_produk.create({
           data: {
             filepath: imageUrls,
@@ -249,28 +260,159 @@ const insertModelProdukRepo = async (newModelProdukData) => {
 
 
 const updateModelProdukRepo = async (id,updatedModelProdukData) => {
-        const existingModelProduk = await prisma.model_produk.findUnique({
-          where: { id: parseInt(id) },
-        });
-        
-        if (!existingModelProduk) {
-            return res.status(404).json({ error: "model_produk not found" });
-      }
+  const {
+    kode,
+    nama,
+    deskripsi,
+    variasi,
+    foto,
+    kategori_id,
+    ukuran,
+    biaya_jahit,
+    hpp,
+    harga_jual,
+    bahan_produk,
+    daftar_bahan,
+  } = updatedModelProdukData;
 
-      // Validate and update the model_produk data
-      const updatedModelProduk = await prisma.model_produk.update({
-      where: { id: parseInt(id) },
-      data: {
-          // Add validation and update fields as needed
-          kode_produk: updatedProdukData.kode_produk || existingProduk.kode_produk,
-          sku: updatedProdukData.sku || existingProduk.sku,
-          nama_produk: updatedProdukData.nama_produk || existingProduk.nama_produk,
-          stok: parseInt(updatedProdukData.stok) || existingProduk.stok,
-      harga_jual: parseFloat(updatedProdukData.harga_jual) || existingProduk.harga_jual,
+  // Check if the model with the given kode exists
+  const existingModel = await prisma.model_produk.findUnique({
+    where: {
+      id: id,
+    },
+  });
 
+  if (!existingModel) {
+    throw new Error('Model not found');
+  }
+
+  // Update the main model_produk
+  const updatedModel = await prisma.model_produk.update({
+    where: {
+      id: id,
+    },
+    data: {
+      kode,
+      nama,
+      deskripsi,
+      variasi,
+      kategori: {
+        connect: {
+          id: parseInt(kategori_id),
+        },
       },
+    },
+  });
+
+  // // Update existing photos or add new ones
+  // const updatedPhotos = await Promise.all(
+  //   foto.map(async (imageUrl) => {
+  //     const imageUrls = ('/public/images/model-produk' + foto.filename);
+  //     const fotoId= await prisma.foto_produk.findFirst({
+  //       where:{
+  //         id:updatedModel.id
+  //       }
+  //     })
+  //     const updatedPhoto = await prisma.foto_produk.upsert({
+  //       where: {
+  //         model_produk_id: updatedModel.id,
+  //       },
+  //       update: {
+  //         filepath: imageUrls,
+  //       },
+  //       create: {
+  //         filepath: imageUrls,
+  //         model_produk: {
+  //           connect: {
+  //             id: updatedModel.id,
+  //           },
+  //         },
+  //       },
+  //     });
+  //     return updatedPhoto;
+  //   })
+  // );
+
+  // Update or create bahan_produk for each daftar_bahan
+  const detail_model_produk = await prisma.detail_model_produk.findFirst({
+    where: {
+    model_produk_id: existingModel.id
+    
+  }});
+  const updatedBahanProduk = await Promise.all(
+    bahan_produk.map(async (material) => {
+      const { jumlah, daftar_bahan_id } = material;
+      const existingBahanProduk = await prisma.bahan_produk.findFirst({
+        where: {
+          detail_model_produk_id: {
+            equals: detail_model_produk.id,
+          },
+          daftar_bahan_id: {
+            equals: daftar_bahan_id,
+          },
+        },
       });
-      return updatedProduk
+
+      if (existingBahanProduk) {
+        // Update existing bahan_produk
+        return prisma.bahan_produk.update({
+          where: {
+            id: existingBahanProduk.id,
+          },
+          data: {
+            jumlah: parseInt(jumlah),
+          },
+        });
+      } else {
+        // Create new bahan_produk
+        return prisma.bahan_produk.create({
+          data: {
+            jumlah: parseInt(jumlah),
+            detail_model_produk: {
+              connect: {
+                id: detail_model_produk.id,
+              },
+            },
+            daftar_bahan: {
+              connect: {
+                id: daftar_bahan_id,
+              },
+            },
+          },
+        });
+      }
+    })
+  );
+
+  const updatedModelProducts = {
+    model_produk: updatedModel,
+    detail_model_produk: existingModel.detail_model_produk,
+    bahanProduk: updatedBahanProduk,
+  };
+
+  return updatedModelProducts;
+}
+const updatedFotoProdukRepo = async(fotoProduk,newFotoProduk)=>{
+  // return fotoProduk;
+  // if (!fotoProduk || !fotoProduk.filepath) {
+  //   throw new Error('Invalid existing photo data');
+  // }
+  try {
+    const fullPath = path.join(__dirname, '..', fotoProduk.filepath); // Adjust '..' based on your project structure
+    await fs.unlink(fullPath);
+  } catch (error) {
+    console.error('Error deleting existing file:', error);
+  }
+  const imageUrls = ('/public/images/model-produk/' + newFotoProduk.foto.filename);
+  const updateFotoProduk = await prisma.foto_produk.update({
+        where:{
+          id:fotoProduk.id
+        },
+        data:{
+        filepath:imageUrls
+        }
+          });
+          return updateFotoProduk;
 }
 const deleteModelProdukByIdRepo = async(id)=>{
   await prisma.model_produk.delete({
@@ -278,10 +420,12 @@ const deleteModelProdukByIdRepo = async(id)=>{
   });
 }
 module.exports={
-  findModelProduk,
   findModelProdukById,
+  findModelProduk,
+  findFotoProduk,
   insertModelProdukRepo,
   updateModelProdukRepo,
+  updatedFotoProdukRepo,
   deleteModelProdukByIdRepo,
   findAllModelProduk
 }

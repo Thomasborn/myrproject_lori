@@ -50,8 +50,8 @@ const hashPassword= async (password)=> {
   
   
       // membuat user pada repository
+      
       const user = userRepository.createUser(dataUser);
-    
       return user;
    
   }
