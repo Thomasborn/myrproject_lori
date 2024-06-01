@@ -30,7 +30,6 @@ model user {
   penjualan penjualan[]
   
 }
-
 model karyawan {
   id            Int      @id @default(autoincrement())
   nama          String
@@ -40,11 +39,20 @@ model karyawan {
   tanggal_lahir DateTime
   jenis_kelamin String
   no_rekening   String
+  foto          String?   // Assuming 'foto' is a URL to the employee's photo
+  posisi        String?
+  status        String?
+  bank          String?
+  akun_bank     String ?
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now())
+  deleted_at    DateTime?
+
+  outlets       outlet[] // This will create a back relation for karyawan to outlets
+
   users         user[]
-  deleted_at DateTime?
 }
+
 
 model role {
   id        Int     @id @default(autoincrement())
@@ -128,6 +136,7 @@ model detail_model_produk {
   deleted_at DateTime?
   model_produk      model_produk @relation(fields: [model_produk_id], references: [id])
   model_produk_id   Int
+  jumlah            Int@default(0)
   created_at        DateTime @default(now())
   updated_at        DateTime @default(now())
   bahan_produk      bahan_produk[]
@@ -153,6 +162,9 @@ model daftar_bahan {
   stok    Float
   nama    String
   satuan  String
+  harga   Float?
+  foto    String? 
+  deskripsi String? 
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
   bahan_produk bahan_produk[]
@@ -311,8 +323,9 @@ model qc_bahan {
 }
 model lemari {
   id              Int       @id @default(autoincrement())
-  nama            String
+  kode            String?
   alamat          String
+  deskripsi       String?
   kapasitas       Int
   stok            Int
   jumlah_barang   Int
@@ -338,22 +351,27 @@ model stok_produk {
   daftar_produk_id  Int
   lemari_id         Int
 }
-
 model outlet {
   id                Int       @id @default(autoincrement())
   nama              String
   no_telp           String
-  jam_operasional   String
-  tanggal_buka      DateTime
-  status            String
-  deskripsi         String
+  kode              String?
+  jam_operasional   String?
+  tanggal_buka      DateTime?
+  status            String?
+  deskripsi         String?
   alamat            String
+  idPic             Int?      // Nullable for now
   created_at        DateTime  @default(now())
   updated_at        DateTime  @default(now())
   deleted_at        DateTime?
-  lemari  lemari[]
-  gawangan  gawangan[]
+
+  lemari            lemari[]
+  gawangan          gawangan[]
+  karyawan          karyawan? @relation(fields: [idPic], references: [id])
 }
+
+
 model detail_gawangan {
   id                Int            @id @default(autoincrement())
   gawangan          gawangan       @relation(fields: [gawangan_id], references: [id])
@@ -369,7 +387,8 @@ model detail_gawangan {
 model gawangan {
   id            Int       @id @default(autoincrement())
   outlet        outlet    @relation(fields: [outlet_id], references: [id])
-  nama          String
+  kode          String?
+  deskripsi     String?
   outlet_id     Int
   created_at    DateTime  @default(now())
   updated_at    DateTime  @default(now())

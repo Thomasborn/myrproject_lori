@@ -11,12 +11,29 @@ const {
   deletegawanganById,
   insertDetailGawangan,
 } = require("./gawangan.service");
+const { findGawanganById } = require("./gawangan.repository");
 
 const router = express.Router();
-router.get("/",async (req,res) => {
-    const gawangan =  await getGawangan();
+router.get("/", async (req, res) => {
+  try {
+    // Extract query parameters for search and pagination
+    const { searchCriteria, page = 1, pageSize = 10 } = req.query;
+
+    // Parse searchCriteria if provided
+    const parsedSearchCriteria = searchCriteria ? JSON.parse(searchCriteria) : {};
+
+    // Fetch gawangan data based on provided search criteria, page, and pageSize
+    const gawangan = await getGawangan(parsedSearchCriteria, parseInt(page), parseInt(pageSize));
+
+    // Send the response
     res.send(gawangan);
- });
+  } catch (error) {
+    // Handle errors
+    console.error("Error fetching gawangan:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 router.get("/:id", async (req, res) => {
     try {
@@ -102,17 +119,15 @@ router.post("/", upload.none(), async (req, res) => {
     
   
      
-      res.send({
-        
-        data:gawangan,
-        message:"gawangan berhasil ditambah success"
-      });
+      res.send(
+        gawangan)
+      ;
     } catch (error) {
       console.error('Error creating gawangan:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-router.patch("/:id", upload.none(),async (req, res) => {
+router.put("/:id", upload.none(),async (req, res) => {
       const { id } = req.params;
       const updatedgawanganData = req.body;
      
@@ -120,7 +135,7 @@ router.patch("/:id", upload.none(),async (req, res) => {
           // Check if the gawangan exists before attempting to update it
         const gawangan = await updatedgawangan(parseInt(id),updatedgawanganData)
     
-    res.send({data:gawangan, message: "gawangan updated successfully" });
+    res.send(gawangan);
 } catch (error) {
     console.error('Error updating gawangan:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -130,11 +145,14 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
 
-    
+  const existgawangan = await findGawanganById(parseInt(id))
+  if (!existgawangan) {
+    return res.status(404).json({ error: 'Gawangan tidak ditemukan' });
+  }
     // If the gawangan exists, delete it
    await deletegawanganById(parseInt(id))
 
-    res.json({ message: "gawangan deleted successfully" });
+    res.json({  message: "gawangan deleted successfully" });
   } catch (error) {
     console.error('Error deleting gawangan:', error);
     res.status(500).json({ error: 'Internal Server Error' });

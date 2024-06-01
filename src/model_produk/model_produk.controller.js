@@ -8,7 +8,7 @@ const modelProdukService = require("./model_produk.service");
 
 const router = express.Router();
 router.get("/",async (req,res) => {
-    const model_produk =  await modelProdukService.getModelProduk();
+    const model_produk =  await modelProdukService.getAllModelProduk();
     res.send(model_produk);
  });
 router.get("/detail-model-produk",async (req,res) => {
@@ -72,7 +72,7 @@ router.post("/", imageUpload, async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  router.patch("/:id", imageUpload,async (req, res) => {
+  router.put("/:id", imageUpload,async (req, res) => {
     try {
       const { id } = req.params;
       const updatedModelProdukData = {

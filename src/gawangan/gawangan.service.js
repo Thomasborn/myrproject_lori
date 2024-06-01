@@ -1,11 +1,11 @@
 const prisma = require("../db");
-const { findGawangan,findDetailGawangan,findDetailGawanganById, findGawanganById, insertGawanganRepo, insertDetailGawanganRepo, updateDetailGawanganRepo,updateGawanganRepo, deletegawanganByIdRepo,deleteDetailGawanganByIdRepo } = require("./gawangan.repository");
-
-const getGawangan = async () => {
-  const gawangan = await findGawangan();
+const { findGawangan,findDetailGawangan,findDetailGawanganById, findGawanganById, insertGawanganRepo, insertDetailGawanganRepo, updateDetailGawanganRepo,updateGawanganRepo, deletegawanganByIdRepo,deleteDetailGawanganByIdRepo,deleteGawanganByIdRepo } = require("./gawangan.repository");
+const getGawangan = async (searchCriteria = {}, page = 1, pageSize = 10) => {
+  const gawangan = await findGawangan(searchCriteria, page, pageSize);
 
   return gawangan;
 };
+
 
 const getDetailGawangan = async ()=>{
   const detailGawangan = await findDetailGawangan();
@@ -34,13 +34,13 @@ const getDetailGawanganById = async (id) => {
 
 const deteleteDetailGawanganById = async (id) => {
   await getDetailGawanganById(id);
-  await deleteDetailGawanganByIdRepo(id)
+  await deleteGawanganByIdRepo(id)
  
 };
 
 const deletegawanganById = async (id) => {
   await getgawanganById(id);
-  await deletegawanganByIdRepo(id)
+  await deleteGawanganByIdRepo(id)
  
 };
 
@@ -72,5 +72,6 @@ module.exports = {
   insertDetailGawangan,
   updatedgawangan,
   updatedDetailGawangan,
-  deletegawanganById
+  deletegawanganById,
+  deteleteDetailGawanganById
 };

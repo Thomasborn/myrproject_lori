@@ -11,7 +11,7 @@ const {
   createakses,
   deleteaksesById,
   editaksesById,
-} = require("./akses.service");
+} = require("./aksi.service");
 
 const router = express.Router();
 router.get("/",async (req,res) => {

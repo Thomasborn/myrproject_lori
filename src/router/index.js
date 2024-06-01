@@ -33,8 +33,11 @@ const StokBahanController = require("../stok_bahan/stok_bahan.controller")
 const LemariController = require("../lemari/lemari.controller")
 const BahanStokOpnameController = require("../bahan_stok_opname/bahan_stok_opname.controller")
 const ProdukStokOpnameController = require("../produk_stok_opname/produk_stok_opname.controller")
+const StokProdukController = require("../stok_produk/stok_produk.controller")
+const KaryawanController = require("../karyawan/karyawan.controller")
+const AksesController = require("../akses/akses.controller")
 
-router.use("/produk",ProdukController);
+// router.use("/produk",ProdukController);
 router.use("/kategori",KategoriController);
 router.use("/pembuat",PembuatController);
 router.use("/produksi",ProduksiController);
@@ -42,25 +45,28 @@ router.use("/pengecekan",PengecekanController);
 router.use("/pengecekan_bahan",PengecekanBahanController);
 router.use("/pemesanan",PemesananBahanController);
 router.use("/supplier",SupplierController);
-router.use("/outlet",OutletController);
-router.use("/gawangan",GawanganController);
+router.use("/master/outlet",OutletController);
+router.use("/master/gawangan",GawanganController);
 router.use("/pembelians",PembelianController);
 router.use("/users",UserController);
 router.use("/fungsi",FungsiController);
+router.use("/akses",AksesController);
 router.use("/model-produk",ModelProdukController);
 router.use("/kategori-produk",KategoriController);
 router.use("/hak-akses",HakAksesController);
 router.use("/qc-produksi",QcProduksiController);
 router.use("/qc-produk",QcProdukController);
 router.use("/qc-bahan",QcBahanController);
-router.use("/daftar-produk",DaftarProdukController);
+router.use("/master/produk",DaftarProdukController);
 router.use("/kustom",KustomController);
 router.use("/diskon",DiskonController);
 router.use("/penjualan",PenjualanController);
-router.use("/daftar-bahan",DaftarBahanController);
+router.use("/master/bahan",DaftarBahanController);
 router.use("/restok-bahan",RestokBahanController);
 router.use("/stok-bahan",StokBahanController);
-router.use("/lemari",LemariController);
+router.use("/master/rak",LemariController);
 router.use("/bahan-stok-opname",BahanStokOpnameController);
 router.use("/produk-stok-opname",ProdukStokOpnameController);
+router.use("/stok-produk",StokProdukController);
+router.use("/karyawan",KaryawanController);
 module.exports=router;

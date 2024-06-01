@@ -1,21 +1,69 @@
 
 const prisma = require("../db");
+const findGawangan = async (searchCriteria = {}, page = 1, pageSize = 10) => {
+  // Calculate pagination offset
+  const offset = (page - 1) * pageSize;
 
-const findGawangan = async () => {
-  const gawangan = await prisma.gawangan.findMany();
+  // Fetch gawangan data based on search criteria and pagination parameters
+  const gawanganData = await prisma.gawangan.findMany({
+    where: searchCriteria,
+    include: {
+      outlet: true,
+      // detailGawangan: true,
+    },
+    skip: offset,
+    take: pageSize,
+  });
 
-  return gawangan;
+  // Fetch total count of gawangan data based on search criteria
+  const totalGawangan = await prisma.gawangan.count({
+    where: searchCriteria,
+  });
+
+  // Reshape the fetched data
+  const reshapedData = gawanganData.map(gawangan => ({
+    id: gawangan.id,
+    idOutlet: gawangan.outlet_id,
+    kode: gawangan.kode,
+    deskripsi: gawangan.deskripsi ?? null, // Or any other value based on your logic
+  }));
+
+  return {
+    success: true,
+    message: "Data gawangan berhasil ditemukan",
+    data: reshapedData,
+    totalPages: Math.ceil(totalGawangan / pageSize),
+    totalGawangan: totalGawangan,
+    page: page
+  };
 };
+
 
 const findGawanganById = async (id) => {
   const gawangan = await prisma.gawangan.findUnique({
     where: {
-      id,
+      id: id,
+    },
+    include: {
+      outlet: true,
     },
   });
-  
-  return gawangan;
+
+  if (!gawangan) {
+    return null; // or throw an error if you prefer
+  }
+
+  const shapedData = {
+    id: gawangan.id,
+    idOutlet: gawangan.outlet_id,
+    kode: gawangan.kode,
+    deskripsi: gawangan.outlet.deskripsi?? null,
+  };
+
+  return shapedData;
 };
+
+
 
 const findDetailGawangan = async () => {
   const detailGawangan = await prisma.detail_gawangan.findMany();
@@ -31,31 +79,50 @@ const findDetailGawanganById = async (id) => {
   });
   
   return detailGawangan;
-};
-const insertGawanganRepo = async (newgawanganData) => {
+};const insertGawanganRepo = async (newgawanganData) => {
+  const { idOutlet, kode,deskripsi } = newgawanganData;
   
-  const { outlet_id, nama } = newgawanganData;
- const existingGawangan = await prisma.gawangan.findFirst({
-  where: {
-    nama: {
-      equals: nama,
+  // Check if a gawangan with the provided kode already exists
+  const existingGawangan = await prisma.gawangan.findFirst({
+    where: {
+      kode: {
+        equals: kode,
+      },
     },
-  },
-});;
+  });
 
   if (existingGawangan) {
-    // If gawangan exists, update it
-   throw new Error("Gawangan sudah ada");
+    // If a gawangan with the provided kode already exists, throw an error
+    return {
+      success: false,
+      message: "Gagal menambahkan gawangan, kode gawangan '" + kode + "' sudah ada",
+      data: null
+    };
   }
+    
+
   // Perform the insert operation using Prisma
   const insertedGawangan = await prisma.gawangan.create({
     data: {
-      outlet_id:parseInt(outlet_id),
-      nama,
+      outlet_id: parseInt(idOutlet),
+      deskripsi,
+      kode,
     },
   });
-  return insertedGawangan
+  const data = {
+    id: insertedGawangan.id,
+    idOutlet: insertedGawangan.outlet_id,
+    kode: insertedGawangan.kode,
+    deskripsi: insertedGawangan.deskripsi,
+  };
+  // Return the inserted kode along with a success message
+  return {
+    success: true,
+    message: "Gawangan berhasil ditambahkan",
+    data : data
+  };
 };
+
 const insertDetailGawanganRepo = async (newgawanganData) => {
   
   const{gawangan_id,daftar_produk_id}=newgawanganData;
@@ -69,6 +136,7 @@ const insertDetailGawanganRepo = async (newgawanganData) => {
   return insertedDetailGawangan;
 }
 const updateGawanganRepo = async (id,updatedgawanganData) => {
+  const {  kode,deskripsi }=updatedgawanganData; 
         const existinggawangan = await prisma.gawangan.findUnique({
           where: { id: parseInt(id) },
         });
@@ -82,11 +150,24 @@ const updateGawanganRepo = async (id,updatedgawanganData) => {
       where: { id: parseInt(id) },
       data: {
           // Add validation and update fields as needed
-          kategori: updatedgawanganData.kategori || existinggawangan.kategori.kategori
+          deskripsi,
+          kode,
         
       },
       });
-      return updatedgawangan
+      const data = {
+        id: updatedgawangan.id,
+        idOutlet: updatedgawangan.outlet_id,
+        kode: updatedgawangan.kode,
+        deskripsi: updatedgawangan.deskripsi,
+      };
+      // Return the inserted kode along with a success message
+      return {
+        success: true,
+        message: "Gawangan berhasil diubah",
+        data : data
+      };
+      
 };
 
 const updateDetailGawanganRepo = async (id,updatedgawanganData) => {
@@ -122,5 +203,5 @@ const deleteDetailGawanganByIdRepo = async(id)=>{
   });
 }
 module.exports={
-  findGawangan,findDetailGawangan,findDetailGawanganById, findGawanganById, insertGawanganRepo, insertDetailGawanganRepo, updateDetailGawanganRepo,updateGawanganRepo, deleteGawanganByIdRepo,deleteDetailGawanganByIdRepo
+  findGawangan,findDetailGawangan,findDetailGawanganById, findGawanganById, insertGawanganRepo, insertDetailGawanganRepo, updateDetailGawanganRepo,updateGawanganRepo, deleteGawanganByIdRepo,deleteDetailGawanganByIdRepo,deleteGawanganByIdRepo
 }

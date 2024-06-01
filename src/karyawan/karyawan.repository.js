@@ -1,21 +1,52 @@
 
 const prisma = require("../db");
-
 const findkaryawan = async () => {
   const karyawan = await prisma.karyawan.findMany();
 
-  return karyawan;
+  return karyawan.map(employee => ({
+    id: employee.id,
+    nama: employee.nama,
+    gender: employee.jenis_kelamin, // Assuming 'jenis_kelamin' maps to 'gender' in your model
+    nik: employee.nik,
+    alamat: employee.alamat,
+    noHp: employee.kontak, // Assuming 'kontak' maps to 'noHp' in your model
+    email: employee.email,
+    foto: employee.foto,
+    posisi: employee.posisi,
+    status: employee.status,
+    bank: employee.bank,
+    norek: employee.no_rekening, // Assuming 'no_rekening' maps to 'norek' in your model
+    akunBank: employee.akun_bank // Assuming 'akun_bank' maps to 'akunBank' in your model
+  }));
 };
-
 const findkaryawanById = async (id) => {
   const karyawan = await prisma.karyawan.findUnique({
     where: {
       id,
     },
   });
-  
-  return karyawan;
+
+  if (!karyawan) {
+    return null; // Return null if no employee found with the provided ID
+  }
+
+  return {
+    id: karyawan.id,
+    nama: karyawan.nama,
+    gender: karyawan.jenis_kelamin, // Assuming 'jenis_kelamin' maps to 'gender' in your model
+    nik: karyawan.nik,
+    alamat: karyawan.alamat,
+    noHp: karyawan.kontak, // Assuming 'kontak' maps to 'noHp' in your model
+    tanggal_lahir: karyawan.tanggal_lahir,
+    noRekening: karyawan.no_rekening, // Assuming 'no_rekening' maps to 'noRekening' in your model
+    foto: karyawan.foto,
+    posisi: karyawan.posisi,
+    status: karyawan.status,
+    bank: karyawan.bank,
+    akunBank: karyawan.akun_bank // Assuming 'akun_bank' maps to 'akunBank' in your model
+  };
 };
+
 const insertkaryawanRepo = async (newkaryawanData) => {
   
   const nama = newkaryawanData.nama;

@@ -1,12 +1,15 @@
 const prisma = require("../db");
 const { findDaftarProduk, findDaftarProdukById, insertDaftarProdukRepo, updateDaftarProdukRepo, deleteDaftarProdukByIdRepo } = require("./daftar_produk.repository");
-
-const getDaftarProduk = async () => {
-  const daftar_produk = await findDaftarProduk();
-
-  return daftar_produk;
+const getDaftarProduk = async (searchCriteria, page, pageSize) => {
+  try {
+    // Fetch all data based on search criteria
+    const allDaftarProduk = await findDaftarProduk(searchCriteria,page,pageSize);
+    // Return paginated data with pagination details
+    return allDaftarProduk;
+  } catch (error) {
+    throw new Error("Error getting daftar_produk");
+  }
 };
-
 
 const getDaftarProdukById = async (id) => {
   const daftar_produk = await findDaftarProdukById(id);
@@ -22,8 +25,8 @@ const deleteDaftarProdukById = async (id) => {
   await deleteDaftarProdukByIdRepo(id)
  
 };
-const insertDaftarProduk = async (sku,detail_model_produk_id)=>{
-  const daftar_produk = await insertDaftarProdukRepo(sku,detail_model_produk_id);
+const insertDaftarProduk = async (data)=>{
+  const daftar_produk = await insertDaftarProdukRepo(data);
 
   return daftar_produk;
   

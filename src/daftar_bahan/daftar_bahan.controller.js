@@ -13,10 +13,24 @@ const {
 } = require("./daftar_bahan.service");
 
 const router = express.Router();
-router.get("/",async (req,res) => {
-    const daftar_bahan =  await getBahan();
+router.get("/", async (req, res) => {
+  try {
+    const { kategori, page = 1, pageSize = 10 } = req.query;
+
+    // Fetch materials with category and pagination parameters
+    const daftar_bahan = await getBahan(kategori, parseInt(page), parseInt(pageSize));
+
     res.send(daftar_bahan);
- });
+  } catch (error) {
+    console.error("Error fetching materials:", error);
+    res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+      data: error,
+    });
+  }
+});
+
 
 router.get("/:id", async (req, res) => {
     try {
