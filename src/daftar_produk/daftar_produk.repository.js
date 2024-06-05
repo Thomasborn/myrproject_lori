@@ -31,7 +31,7 @@ const findDaftarProduk = async (searchCriteria = {}, page = 1, pageSize = 10) =>
 
     // Extracting required fields
     const extractedData = daftar_produk.map(item => ({
-      deskripsi: item.detail_model_produk.model_produk.deskripsi,
+      // deskripsi: item.detail_model_produk.model_produk.deskripsi,
       foto: item.detail_model_produk.model_produk.foto_produk.map(foto => foto.filepath),
       hargaJualMax,
       hargaJualMin,
