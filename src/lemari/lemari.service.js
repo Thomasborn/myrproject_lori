@@ -20,9 +20,10 @@ const getLemariById = async (id) => {
 
 
 const deleteLemariById = async (id) => {
-  await getLemariById(id);
-  await deleteLemariByIdRepo(id)
+  // await getLemariById(id);
+  const lemari = await deleteLemariByIdRepo(id)
  
+  return lemari;
 };
 const insertLemari = async (newLemariData)=>{
   const lemari = await insertLemariRepo(newLemariData);

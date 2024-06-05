@@ -94,7 +94,7 @@ router.post("/register", upload.none(),async (req, res) => {
       res.status(500).json({ message: 'Internal Server Error' });
     }
 }});
-router.get('/logout', (req, res) => {
+router.post('/logout', (req, res) => {
   const cookieName = 'authToken';
 
   // Remove the cookie by setting its value to null and expiration date to the past

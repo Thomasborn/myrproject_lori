@@ -45,7 +45,7 @@ const imageSingleUpload = multer({
       cb(new Error('Invalid file format for images.'));
     }
   },
-}).single('foto'); // Allowing up to 5 image uploads
+}).single('foto');  // Allowing up to 5 image uploads
 // const imageUpload = multer({
 //   storage: imageStorage,
 //   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB limit for images

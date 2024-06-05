@@ -54,10 +54,7 @@ router.post("/", upload.none(), async (req, res) => {
     
   
      
-      res.send({  
-        data:outlet,
-        message:"outlet berhasil ditambah"
-      });
+      res.send(outlet);
     } catch (error) {
       console.error('Error creating outlet:', error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -71,7 +68,7 @@ router.post("/", upload.none(), async (req, res) => {
           // Check if the outlet exists before attempting to update it
         const outlet = await updatedoutlet(parseInt(id),updatedoutletData)
     
-    res.send({data:outlet, message: "outlet updated successfully" });
+    res.send(outlet);
 } catch (error) {
     console.error('Error updating outlet:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -83,9 +80,9 @@ router.delete("/:id", async (req, res) => {
 
     
     // If the outlet exists, delete it
-   await deleteoutletById(parseInt(id))
+   const outlet=await deleteoutletById(parseInt(id))
 
-    res.json({ message: "outlet deleted successfully" });
+    res.send(outlet);
   } catch (error) {
     console.error('Error deleting outlet:', error);
     res.status(500).json({ error: 'Internal Server Error' });

@@ -75,38 +75,38 @@ const permissionsCache = new NodeCache();
     const mappedAksesNama = mapAksesNamaToMethod(aksesNama);
     return (url.includes(fungsiNama) && mappedAksesNama === method) || (url.includes(fungsiNama) && mappedAksesNama === 'crud');
   };
-  
   const checkAuth = async (req, res, next) => {
-    const userData = parseInt(req.session.user.role_id);
-  try{
-    if (userData) {
-      const url = req.url;
-      const method = req.method;
-      const permissions = await getPermissions(userData);
-      
-      for (const permission of permissions) {
-        const fungsiNama = permission.fungsi.nama;
-        const aksesNama = permission.akses.nama;
+    try {
+      if (req.session && req.session.user && req.session.user.role_id) {
+        const userData = parseInt(req.session.user.role_id);
   
-        console.log(mapAksesNamaToMethod(aksesNama), method);
+        const url = req.originalUrl;
+        const method = req.method;
+        const permissions = await getPermissions(userData);
   
-        if (checkPermission(url, method, fungsiNama, aksesNama)) {
-          console.log( mapAksesNamaToMethod(aksesNama));
-          next();
-          return;
+        for (const permission of permissions) {
+          const fungsiNama = permission.fungsi.nama;
+          const aksesNama = permission.akses.nama;
+  
+          console.log(mapAksesNamaToMethod(aksesNama), method);
+  
+          if (checkPermission(url, method, fungsiNama, aksesNama)) {
+            console.log(mapAksesNamaToMethod(aksesNama));
+            console.log(permissions)
+            next();
+            return;
+          }
         }
+  
+        res.status(403).json({ success: false, message: `Akses tidak dimiliki untuk ${url}`, permissions: permissions });
+      } else {
+        res.status(401).json({ success: false, message: 'Sesi tidak sah' });
       }
-  
-      res.status(403).json({ message: `Akses tidak dimiliki untuk ${url}`, permissions: permissions });
-    } else {
-      res.status(401).json({ message: 'Role tidak dimiliki', userData });
-    }
-  
     } catch (error) {
-      // Handle any potential errors, e.g., fetching permissions failed
       console.error('Error checking user permissions:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
+  
 
   // // next();
   //   try{

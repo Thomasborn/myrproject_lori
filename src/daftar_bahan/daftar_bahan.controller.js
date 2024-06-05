@@ -1,6 +1,7 @@
 
 const express = require("express");
 const prisma = require("../db");
+const  { imageUpload, pdfUpload, imageSingleUpload } = require("../middleware/upload-file");
 const multer = require("multer");
 const upload = multer();
 const {
@@ -42,34 +43,37 @@ router.get("/:id", async (req, res) => {
       res.status(400).send(err.message);
     }
   });
-router.post("/", upload.none(), async (req, res) => {
+router.post("/", imageSingleUpload, async (req, res) => {
     try {
     
         const newBahanData = req.body;
+        if (!req.file) {
+          return res.status(400).json({ error: 'No file uploaded' });
+        }
+        const file = req.file;
 
-        const daftar_bahan = await insertBahan(newBahanData);
+        const daftar_bahan = await insertBahan(newBahanData,file);
     
   
      
-      res.send({
-        
-        data:daftar_bahan,
-        message:"Bahan berhasil ditambah success"
-      });
+      res.send(
+        daftar_bahan
+    );
     } catch (error) {
       console.error('Error creating Bahan:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  router.patch("/:id", upload.none(),async (req, res) => {
+  router.put("/:id", imageSingleUpload,async (req, res) => {
       const { id } = req.params;
       const updatedBahanData = req.body;
+      const file = req.file;
      
       try {
           // Check if the daftar_bahan exists before attempting to update it
-        const daftar_bahan = await updatedBahan(parseInt(id),updatedBahanData)
+        const daftar_bahan = await updatedBahan(parseInt(id),updatedBahanData,file)
     
-    res.send({data:daftar_bahan, message: "daftar_bahan updated successfully" });
+    res.send(daftar_bahan);
 } catch (error) {
     console.error('Error updating daftar_bahan:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -81,9 +85,9 @@ router.delete("/:id", async (req, res) => {
 
     
     // If the daftar_bahan exists, delete it
-   await deleteBahanById(parseInt(id))
+   const bahan = await deleteBahanById(parseInt(id))
 
-    res.json({ message: "daftar_bahan deleted successfully" });
+    res.send(bahan);
   } catch (error) {
     console.error('Error deleting daftar_bahan:', error);
     res.status(500).json({ error: 'Internal Server Error' });

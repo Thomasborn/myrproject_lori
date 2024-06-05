@@ -40,8 +40,8 @@ const deteleteDetailGawanganById = async (id) => {
 
 const deletegawanganById = async (id) => {
   await getgawanganById(id);
-  await deleteGawanganByIdRepo(id)
- 
+ const gawangan= await deleteGawanganByIdRepo(id)
+ return gawangan;
 };
 
 const insertDetailGawangan = async (newgawanganData)=>{

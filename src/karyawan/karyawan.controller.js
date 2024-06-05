@@ -15,7 +15,11 @@ const {
 
 const router = express.Router();
 router.get("/",async (req,res) => {
-    const karyawan =  await getkaryawans();
+  const { searchCriteria, page = 1, pageSize = 10 } = req.query;
+
+  // Parse search criteria if provided
+  const parsedSearchCriteria = searchCriteria ? JSON.parse(searchCriteria) : {};
+    const karyawan =  await getkaryawans(parsedSearchCriteria, parseInt(page), parseInt(pageSize));
     res.send(karyawan);
  });
 
@@ -48,17 +52,15 @@ router.post("/", upload.none(), async (req, res) => {
     
   
      
-      res.send({
-        
-        data:karyawan,
-        message:"karyawan berhasil ditambah success"
-      });
+      res.send(
+        karyawan
+      );
     } catch (error) {
       console.error('Error creating karyawan:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  router.patch("/:id", upload.none(),async (req, res) => {
+  router.put("/:id", upload.none(),async (req, res) => {
       const { id } = req.params;
       const updatedkaryawanData = req.body;
      
@@ -66,7 +68,7 @@ router.post("/", upload.none(), async (req, res) => {
           // Check if the karyawan exists before attempting to update it
         const karyawan = await updatedkaryawan(parseInt(id),updatedkaryawanData)
     
-    res.send({data:karyawan, message: "karyawan updated successfully" });
+    res.send(karyawan);
 } catch (error) {
     console.error('Error updating karyawan:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -78,9 +80,9 @@ router.delete("/:id", async (req, res) => {
 
     
     // If the karyawan exists, delete it
-   await deletekaryawanById(parseInt(id))
+   const karyawan = await deletekaryawanById(parseInt(id))
 
-    res.json({ message: "karyawan deleted successfully" });
+    res.send(karyawan);
   } catch (error) {
     console.error('Error deleting karyawan:', error);
     res.status(500).json({ error: 'Internal Server Error' });

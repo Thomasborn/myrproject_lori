@@ -13,6 +13,8 @@ model user {
   id          Int     @id @default(autoincrement())
   email       String  @unique
   password    String
+  username    String?
+  status    String?
   karyawan_id Int
   role_id     Int
   created_at  DateTime @default(now()) // Created timestamp

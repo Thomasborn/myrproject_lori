@@ -17,9 +17,9 @@ const getoutletById = async (id) => {
   return outlet;
 };
 const deleteoutletById = async (id) => {
-  await getoutletById(id);
-  await deleteoutletByIdRepo(id)
- 
+  // await getoutletById(id);
+  const outlet = await deleteoutletByIdRepo(id)
+ return outlet;
 };
 const insertoutlet = async (newoutletData)=>{
   const outlet = await insertoutletRepo(newoutletData);

@@ -21,9 +21,10 @@ const getDaftarProdukById = async (id) => {
   return daftar_produk;
 };
 const deleteDaftarProdukById = async (id) => {
-  await getDaftarProdukById(id);
-  await deleteDaftarProdukByIdRepo(id)
+  // await getDaftarProdukById(id);
+  const produk= await deleteDaftarProdukByIdRepo(id)
  
+  return produk;
 };
 const insertDaftarProduk = async (data)=>{
   const daftar_produk = await insertDaftarProdukRepo(data);

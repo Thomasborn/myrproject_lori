@@ -30,14 +30,15 @@ const findGawangan = async (searchCriteria = {}, page = 1, pageSize = 10) => {
 
   return {
     success: true,
-    message: "Data gawangan berhasil ditemukan",
-    data: reshapedData,
+    message: "Data gawangan berhasil diperoleh",
+    dataTitle: "Gawangan",
     totalPages: Math.ceil(totalGawangan / pageSize),
-    totalGawangan: totalGawangan,
-    page: page
+    totalData: totalGawangan,
+    page: page,
+    data: reshapedData
   };
+  
 };
-
 
 const findGawanganById = async (id) => {
   const gawangan = await prisma.gawangan.findUnique({
@@ -50,17 +51,24 @@ const findGawanganById = async (id) => {
   });
 
   if (!gawangan) {
-    return null; // or throw an error if you prefer
+    return {
+      success: false,
+      message: `Data gawangan dengan ID ${id} tidak ditemukan.`,
+    };
   }
 
   const shapedData = {
     id: gawangan.id,
     idOutlet: gawangan.outlet_id,
     kode: gawangan.kode,
-    deskripsi: gawangan.outlet.deskripsi?? null,
+    deskripsi: gawangan.outlet.deskripsi ?? null,
   };
 
-  return shapedData;
+  return {
+    success: true,
+    message: `Data gawangan dengan ID ${id} berhasil diperoleh.`,
+    data: shapedData,
+  };
 };
 
 
@@ -118,7 +126,7 @@ const findDetailGawanganById = async (id) => {
   // Return the inserted kode along with a success message
   return {
     success: true,
-    message: "Gawangan berhasil ditambahkan",
+    message: "Data Gawangan berhasil ditambahkan",
     data : data
   };
 };
@@ -191,11 +199,35 @@ const updateDetailGawanganRepo = async (id,updatedgawanganData) => {
       });
       return updatedDetailGawangan
 }
-const deleteGawanganByIdRepo = async(id)=>{
-  await prisma.gawangan.delete({
-    where: { id: id },
-  });
-}
+const deleteGawanganByIdRepo = async (id) => {
+  const existingGawangan = await findGawanganById(id);
+
+  if (existingGawangan.success==false) {
+    return {
+      success: false,
+      message: `Data gawangan dengan ID ${id} tidak ditemukan.`,
+    };
+  }
+  try {
+    // Attempt to delete the gawangan entry
+    await prisma.gawangan.delete({
+      where: { id: id },
+    });
+
+    return {
+      success: true,
+      message: `Data gawangan dengan ID ${id} berhasil dihapus.`,
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: `Terjadi kesalahan saat menghapus data gawangan dengan ID ${id}.`,
+    };
+  }
+};
+
 
 const deleteDetailGawanganByIdRepo = async(id)=>{
   await prisma.detail_gawangan.delete({

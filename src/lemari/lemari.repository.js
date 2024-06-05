@@ -35,13 +35,15 @@ const findLemari = async (kode, page = 1, pageSize = 10) => {
 
     return {
       success: true,
-      message: "Lemari fetched successfully",
-      data: reshapedLemari,
-      search: searchCriteria,
+      message: "Data Rak berhasil diperoleh",
+      dataTitle: "Rak",
       totalPages: Math.ceil(totalLemari / pageSize),
-      totalLemari: totalLemari,
-      page: page
+      totalData: totalLemari,
+      page: page,
+      data: reshapedLemari,
+      search: searchCriteria
     };
+    
 
   } catch (error) {
     console.error("Error fetching lemari:", error);
@@ -49,8 +51,8 @@ const findLemari = async (kode, page = 1, pageSize = 10) => {
   }
 };
 
-
 const findLemariById = async (id) => {
+  // Fetch the lemari entry by ID, including related outlet data
   const lemariWithOutlet = await prisma.lemari.findUnique({
     where: {
       id,
@@ -61,7 +63,11 @@ const findLemariById = async (id) => {
   });
 
   if (!lemariWithOutlet) {
-    return null; // Handle case where the cabinet with the specified ID is not found
+    // Handle case where the cabinet with the specified ID is not found
+    return {
+      success: false,
+      message: `Data Rak dengan ID ${id} tidak ditemukan.`,
+    };
   }
 
   // Reshape the data
@@ -71,59 +77,137 @@ const findLemariById = async (id) => {
     kapasitas: lemariWithOutlet.kapasitas,
     idOutlet: lemariWithOutlet.outlet_id,
     outlet: lemariWithOutlet.outlet.nama, // Assuming the outlet model has a 'nama' field
-    kodeOutlet: lemariWithOutlet.outlet.kode??null, // Assuming the outlet model has a 'kode' field
+    kodeOutlet: lemariWithOutlet.outlet.kode ?? null, // Assuming the outlet model has a 'kode' field
   };
 
-  return reshapedLemari;
+  return {
+    success: true,
+    message: `Data rak dengan ID ${id} berhasil ditemukan.`,
+    data: reshapedLemari,
+  };
 };
 
 const insertLemariRepo = async (newLemariData) => {
-  
-  const { kode, alamat, kapasitas, stok, jumlah_barang, outlet_id } = newLemariData;
-
+  const { kode, kapasitas,alamat, stok, jumlah_barang, idOutlet } = newLemariData;
+  try {
     const lemari = await prisma.lemari.create({
       data: {
-        kode,
-        alamat,
-        kapasitas,
-        stok,
-        jumlah_barang,
+        kode: kode || null, // Menggunakan nilai default jika kode kosong
+        alamat: alamat || null, // Menggunakan nilai default jika alamat kosong
+        kapasitas: kapasitas || null, // Menggunakan nilai default jika kapasitas kosong
+        stok: stok || 0, // Menggunakan nilai default 0 jika stok kosong
+        jumlah_barang: jumlah_barang || 0, // Menggunakan nilai default 0 jika jumlah_barang kosong
         outlet: {
           connect: {
-            id: outlet_id,
+            id: idOutlet,
           },
         },
       },
     });
+    const reshapedLemari = {
+      id: lemari.id,
+      kode: lemari.kode,
+      kapasitas: lemari.kapasitas,
+      deskripsi: lemari.deskripsi,
+      idOutlet: lemari.outlet_id,
+    };
+    return {
+      success: true,
+      message: `Data rak berhasil ditambahkan dengan ID ${lemari.id}`,
+      data: reshapedLemari,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: 'Terjadi kesalahan saat menambahkan data rak.',
+    };
+  }
+};
+const updateLemariRepo = async (id, updatedLemariData) => {
+  const { kode, kapasitas, stok, jumlah_barang, idOutlet } = updatedLemariData;
 
-  return lemari
-}
-const updateLemariRepo = async (id,updatedLemariData) => {
-        const existingLemari = await prisma.lemari.findUnique({
-          where: { id: parseInt(id) },
-        });
-        
-        if (!existingLemari) {
-            return ({ error: "lemari not found" });
-      }
-
-      // Validate and update the lemari data
-      const updatedLemari = await prisma.lemari.update({
-      where: { id: parseInt(id) },
-      data: {
-          // Add validation and update fields as needed
-          kode: updatedLemariData.kode || existingLemari.kode,
-          kapasitas: updatedLemariData.kapasitas 
-        
+  try {
+    // Check if the lemari exists
+    const existingLemari = await prisma.lemari.findUnique({
+      where: {
+        id: parseInt(id),
       },
-      });
-      return updatedLemari
-}
-const deleteLemariByIdRepo = async(id)=>{
-  await prisma.lemari.delete({
-    where: { id: id },
-  });
-}
+    });
+
+    if (!existingLemari) {
+      return {
+        success: false,
+        message: `Data rak dengan ID ${id} tidak ditemukan.`,
+      };
+    }
+
+    // Update the lemari
+    const updatedLemari = await prisma.lemari.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: {
+        kode,
+        kapasitas,
+        stok,
+        // jumlah_barang,
+        outlet: {
+          connect: {
+            id: idOutlet,
+          },
+        },
+      },
+    });
+    const reshapedLemari = {
+      id: updatedLemari.id,
+      kode: updatedLemari.kode,
+      kapasitas: updatedLemari.kapasitas,
+      deskripsi: updatedLemari.deskripsi,
+      idOutlet: updatedLemari.outlet_id,
+    };
+    return {
+      success: true,
+      message: `Data rak dengan ID ${id} berhasil diperbarui.`,
+      data: reshapedLemari,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: 'Terjadi kesalahan saat memperbarui data rak.',
+    };
+  }
+};
+const deleteLemariByIdRepo = async (id) => {
+  try {
+    // Check if the lemari exists
+    const existingLemari = await findLemariById(id);
+
+    if (existingLemari.success==false) {
+      return {
+        success: false,
+        message: `Data rak dengan ID ${id} tidak ditemukan.`,
+      };
+    }
+
+    // Delete the lemari entry from the database
+    await prisma.lemari.delete({
+      where: { id: id },
+    });
+
+    return {
+      success: true,
+      message: `Data rak dengan ID ${id} berhasil dihapus.`,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: 'Terjadi kesalahan saat menghapus data rak.',
+    };
+  }
+};
 module.exports={
   findLemari,
   findLemariById,

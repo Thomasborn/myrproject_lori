@@ -1,8 +1,8 @@
 const prisma = require("../db");
 const { finduser, finduserById, insertuserRepo, updateuserRepo, deleteuserByIdRepo } = require("./user.repository");
 
-const getusers = async () => {
-  const user = await finduser();
+const getusers = async (searchCriteria, page, pageSize) => {
+  const user = await finduser(searchCriteria, page, pageSize);
 
   return user;
 };
@@ -18,9 +18,8 @@ const getuserById = async (id) => {
   return user;
 };
 const deleteuserById = async (id) => {
-  await getuserById(id);
-  await deleteuserByIdRepo(id)
- 
+ const pengguna = await deleteuserByIdRepo(id)
+ return pengguna;
 };
 const insertuser = async (newuserData)=>{
   const user = await insertuserRepo(newuserData);

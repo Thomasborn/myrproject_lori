@@ -39,44 +39,67 @@ const findoutlet = async (searchCriteria = {}, page = 1, pageSize = 10) => {
 
     return {
       success: true,
-      message: "Outlet data berhasil ditemukan",
-      data: reshapedOutlets,
+      message: "Data Outlet berhasil diperoleh",
+      dataTitle: "Outlet",
       totalPages: Math.ceil(totalOutlets / pageSize),
-      totalOutlets: totalOutlets,
-      page: page
+      totalData: totalOutlets,
+      page: page,
+      data: reshapedOutlets
     };
+    
   } catch (error) {
     console.error("Error fetching outlets:", error);
     throw new Error("Gagal mengambil data outlet");
   }
 };
 
-
 const findoutletById = async (id) => {
-  const outlet = await prisma.outlet.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      karyawan: {
-        select: {
-          nama: true,
-          kontak: true
-        }
-      }
+  try {
+    const outlet = await prisma.outlet.findUnique({
+      where: {
+        id: id,
+      },
+      include: {
+        karyawan: {
+          select: {
+            id: true, // Ensure to select id
+            nama: true,
+            kontak: true,
+          },
+        },
+      },
+    });
+
+    if (!outlet) {
+      return {
+        success: false,
+        message: `Data outlet dengan ID ${id} tidak ditemukan.`,
+      };
     }
-  });
-  
-  return outlet ? {
-    id: outlet.id,
-    nama: outlet.nama,
-    kode: outlet.kode,
-    alamat: outlet.alamat,
-    idKaryawanPic: outlet.karyawan ? outlet.karyawan.id : null,
-    pic: outlet.karyawan ? outlet.karyawan.nama : null,
-    kontakPic: outlet.karyawan ? outlet.karyawan.kontak : null,
-    keterangan: outlet.deskripsi // Assuming 'keterangan' maps to 'deskripsi' in your model
-  } : null;
+
+    const shapedData = {
+      id: outlet.id,
+      nama: outlet.nama,
+      kode: outlet.kode,
+      alamat: outlet.alamat,
+      idKaryawanPic: outlet.karyawan ? outlet.karyawan.id : null,
+      pic: outlet.karyawan ? outlet.karyawan.nama : null,
+      kontakPic: outlet.karyawan ? outlet.karyawan.kontak : null,
+      keterangan: outlet.deskripsi, // Assuming 'keterangan' maps to 'deskripsi' in your model
+    };
+
+    return {
+      success: true,
+      message: `Data outlet dengan ID ${id} berhasil ditemukan.`,
+      data: shapedData,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: 'Terjadi kesalahan saat mencari data outlet.',
+    };
+  }
 };
 const reshapeOutletData = (outletData) => {
   return {
@@ -111,34 +134,41 @@ const insertoutletRepo = async (newoutletData) => {
     return {
       success: true,
       message: `Data outlet berhasil ditambahkan dengan ID ${insertedOutlet.id}`,
-      data: outlet,
+      data: outlet.data,
     };
   } catch (error) {
     console.error("Error inserting outlet:", error);
     throw new Error("Gagal menambahkan data outlet");
   }
 };
-const updateoutletRepo = async (id, updatedoutletData) => {
+const updateoutletRepo = async (id, updatedOutletData) => {
   try {
-    const { kode, nama, alamat, keterangan, idKaryawanPic, kontakPic } = updatedoutletData;
+    const { kode, nama, alamat, keterangan, idKaryawanPic, kontakPic } = updatedOutletData;
 
     // Check if the outlet exists
-    const existingOutlet = await prisma.outlet.findUnique({ where: { id: parseInt(id) } });
+    const existingOutlet = await prisma.outlet.findUnique({
+      where: { id: parseInt(id) },
+    });
+
     if (!existingOutlet) {
-      throw new Error("Outlet not found");
+      return {
+        success: false,
+        message: `Outlet dengan ID ${id} tidak ditemukan.`,
+      };
     }
 
     // Perform the update operation using Prisma
-    const updatedOutlet = await prisma.outlet.update({ 
-      where: { id: parseInt(id) }, 
-      data: { 
+    const updatedOutlet = await prisma.outlet.update({
+      where: { id: parseInt(id) },
+      data: {
         kode,
         nama,
         alamat,
         deskripsi: keterangan,
-        idPic: idKaryawanPic,
-        no_telp: kontakPic
-      } 
+        karyawan: {
+          connect: { id: idKaryawanPic },
+        },
+      },
     });
 
     // Fetch the updated outlet
@@ -146,14 +176,18 @@ const updateoutletRepo = async (id, updatedoutletData) => {
 
     return {
       success: true,
-      message: `Data outlet dengan ID ${updatedOutlet.id} berhasil diperbarui`,
-      data: outlet,
+      message: `Data outlet dengan ID ${updatedOutlet.id} berhasil diperbarui.`,
+      data: outlet.data,
     };
   } catch (error) {
     console.error("Error updating outlet:", error);
-    throw new Error("Gagal memperbarui data outlet");
+    return {
+      success: false,
+      message: "Gagal memperbarui data outlet.",
+    };
   }
 };
+
 
 
 
@@ -177,11 +211,38 @@ const updateoutletRepo = async (id, updatedoutletData) => {
 //       });
 //       return updatedoutlet
 // }
-const deleteoutletByIdRepo = async(id)=>{
-  await prisma.outlet.delete({
-    where: { id: id },
-  });
-}
+const deleteoutletByIdRepo = async (id) => {
+  try {
+    // Check if the outlet exists
+    const existingOutlet = await prisma.outlet.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!existingOutlet) {
+      return {
+        success: false,
+        message: `Outlet dengan ID ${id} tidak ditemukan.`,
+      };
+    }
+
+    // Perform the deletion
+    await prisma.outlet.delete({
+      where: { id: parseInt(id) },
+    });
+
+    return {
+      success: true,
+      message: `Data outlet dengan ID ${id} berhasil dihapus.`,
+    };
+  } catch (error) {
+    console.error("Error deleting outlet:", error);
+    return {
+      success: false,
+      message: "Terjadi kesalahan saat menghapus data outlet.",
+    };
+  }
+};
+
 module.exports={
   findoutlet,
   findoutletById,

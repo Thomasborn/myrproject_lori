@@ -17,24 +17,24 @@ const getBahanById = async (id) => {
   const daftar_bahan = await findBahanById(id);
 
   if (!daftar_bahan) {
-    throw Error("Bahan not found");
+    throw Error("Bahan tidak ditemukan");
   }
 
   return daftar_bahan;
 };
 const deleteBahanById = async (id) => {
-  await getBahanById(id);
-  await deleteBahanByIdRepo(id)
+  const bahan= await deleteBahanByIdRepo(id)
  
+  return bahan;
 };
-const insertBahan = async (newBahanData)=>{
-  const daftar_bahan = await insertBahanRepo(newBahanData);
+const insertBahan = async (newBahanData,file)=>{
+  const daftar_bahan = await insertBahanRepo(newBahanData,file);
 
   return daftar_bahan;
   
 };
-const updatedBahan = async (id,updatedBahanData)=>{
-  const daftar_bahan = await updateBahanRepo(id,updatedBahanData);
+const updatedBahan = async (id,updatedBahanData,file)=>{
+  const daftar_bahan = await updateBahanRepo(id,updatedBahanData,file);
   return daftar_bahan;
 };
 module.exports = {

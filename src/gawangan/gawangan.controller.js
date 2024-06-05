@@ -150,9 +150,9 @@ router.delete("/:id", async (req, res) => {
     return res.status(404).json({ error: 'Gawangan tidak ditemukan' });
   }
     // If the gawangan exists, delete it
-   await deletegawanganById(parseInt(id))
+   const gawangan = await deletegawanganById(parseInt(id))
 
-    res.json({  message: "gawangan deleted successfully" });
+    res.send(gawangan);
   } catch (error) {
     console.error('Error deleting gawangan:', error);
     res.status(500).json({ error: 'Internal Server Error' });

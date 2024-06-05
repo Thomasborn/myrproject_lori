@@ -51,12 +51,14 @@ const findDaftarProduk = async (searchCriteria = {}, page = 1, pageSize = 10) =>
 
     return {
       success: true,
-      message: "Sukses mengambil data",
-      data: extractedData,
+      message: "Data Produk berhasil diperoleh",
+      dataTitle: "Produk",
       totalPages: totalPages,
-      totalProduk: totalProduk,
-      page: page
+      totalData: totalProduk,
+      page: page,
+      data: extractedData
     };
+    
 
  
 };
@@ -85,7 +87,12 @@ const findDaftarProduk = async (searchCriteria = {}, page = 1, pageSize = 10) =>
         }
       }
     });
-  
+    if (!daftar_produk) {
+      return {
+        success: false,
+        message: "Daftar produk dengan ID: "+id+" tidak ditemukan",
+      };
+    }
     // Transform the data
     const transformedData = {
       id: daftar_produk.id,
@@ -125,7 +132,11 @@ const findDaftarProduk = async (searchCriteria = {}, page = 1, pageSize = 10) =>
     transformedData.hargaJualMin = hargaJualMin;
     transformedData.hargaJualMax = hargaJualMax;
   
-    return transformedData;
+    return {
+      success: true,
+      message: `Data produk dengan id ${transformedData.id} berhasil diperoleh`,
+      data: transformedData
+    };
   }
   
   
@@ -204,7 +215,12 @@ const insertDaftarProdukRepo = async (data) => {
 
     };
 
-    return response;
+    return {
+      success: true,
+      message: `Data produk berhasil ditambahkan dengan ID ${response.id}`,
+      data: response
+  };
+  
  
 };
 // const insertDaftarProdukRepo = async (data) => {
@@ -272,11 +288,69 @@ const updateDaftarProdukRepo = async (id,updatedProdukData) => {
       });
       return updatedProduk
 }
-const deleteDaftarProdukByIdRepo = async(id)=>{
-  await prisma.daftar_produk.delete({
-    where: { id: id },
-  });
-}
+const deleteDaftarProdukByIdRepo = async (id) => {
+  try {
+    // Find the daftar_produk
+    const daftarProduk = await prisma.daftar_produk.findUnique({
+      where: { id },
+      include: {
+        detail_model_produk: {
+          include: {
+            model_produk: true,
+          }
+        }
+      },
+    });
+
+    if (!daftarProduk) {
+      return {
+        success: false,
+        message: 'Daftar produk tidak ditemukan.',
+      };
+    }
+
+
+    // Delete bahan_produk related to detail_model_produk
+    await prisma.bahan_produk.deleteMany({
+      where: { detail_model_produk_id: daftarProduk.detail_model_produk.id },
+    });
+    // Delete daftar_produk itself
+    await prisma.daftar_produk.delete({
+      where: { id },
+    });
+   
+    // Delete detail_model_produk
+    await prisma.detail_model_produk.delete({
+      where: { id: daftarProduk.detail_model_produk.id },
+    });
+
+// Delete foto_produk related to model_produk
+    await prisma.foto_produk.deleteMany({
+      where: { model_produk_id: daftarProduk.detail_model_produk.model_produk.id },
+    });
+    // Delete model_produk
+    await prisma.model_produk.delete({
+      where: { id: daftarProduk.detail_model_produk.model_produk.id },
+    });
+
+    
+
+    return {
+      success: true,
+      message: `Daftar produk dengan ID ${id} berhasil dihapus.`,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Gagal menghapus daftar produk.',
+      error: error.message || 'Internal server error',
+    };
+  }
+};
+
+
+
+
 module.exports={
   findDaftarProduk,
   findDaftarProdukById,

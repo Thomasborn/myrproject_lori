@@ -46,9 +46,9 @@ router.post("/", upload.none(), async (req, res) => {
   
      
       res.send({
-        
-        data:lemari,
-        message:"Lemari berhasil ditambah success"
+        success : lemari.success,
+        message: lemari.message,
+        data:lemari.data,
       });
     } catch (error) {
       console.error('Error creating Lemari:', error);
@@ -62,12 +62,16 @@ router.post("/", upload.none(), async (req, res) => {
       try {
         const existlemari = await getLemariById(parseInt(id));
         if(!existlemari){
-          res.send({success : false, message: "lemari dengan id: "+id+"tidak ditemukan",data:null });
+          res.send({success : false, message: "lemari dengan id: "+id+"tidak ditemukan"});
         }
           // Check if the lemari exists before attempting to update it
         const lemari = await updatedLemari(parseInt(id),updatedLemariData)
     
-    res.send({success : true, message: "lemari updated successfully",data:lemari });
+        res.send({
+          success : lemari.success,
+          message: lemari.message,
+          data:lemari.data,
+        });
 } catch (error) {
     console.error('Error updating lemari:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -84,10 +88,10 @@ router.post("/", upload.none(), async (req, res) => {
     }
 
     // If the lemari exists, delete it
-    await deleteLemariById(parseInt(id));
+    const deleteLemari = await deleteLemariById(parseInt(id));
 
     // Send success response
-    res.json({ message: "Lemari id: "+id+" deleted successfully" });
+    res.json(deleteLemari);
   } catch (error) {
     // Handle errors
     console.error('Error deleting lemari:', error);

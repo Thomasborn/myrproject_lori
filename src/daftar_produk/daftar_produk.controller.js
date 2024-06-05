@@ -40,14 +40,7 @@ router.get("/", async (req, res) => {
     // Fetching data based on search criteria and pagination
     const result = await getDaftarProduk(searchCriteria, parseInt(page, 10), parseInt(pageSize, 10));
 
-    res.send({
-      success: true,
-      message: "Sukses mengambil data",
-      data: result.data,
-      totalPages: result.totalPages,
-      totalProduk: result.totalProduk,
-      page: result.page
-    });
+    res.send(result);
   } 
 );
 
@@ -59,7 +52,7 @@ router.get("/:id", async (req, res) => {
     if (isNaN(produkId)) {
       return res.status(400).send({ 
         success: false, 
-        message: "Invalid product ID", 
+        message: "ID Produk tidak valid", 
         data: null 
       });
     }
@@ -69,21 +62,21 @@ router.get("/:id", async (req, res) => {
     if (!daftar_produk) {
       return res.status(404).send({
         success: false,
-        message: "Product not found",
+        message: "Produk ID:"+produkId+"tidak ditemukan",
         data: null
       });
     }
 
     res.send({
-      success: true,
-      message: "Successfully retrieved product data",
-      data: daftar_produk
+      success: daftar_produk.success,
+      message: daftar_produk.message,
+      data: daftar_produk.data
     });
   } catch (err) {
     console.error('Error fetching product:', err);
     res.status(500).send({
       success: false,
-      message: 'An error occurred while fetching the product',
+      message: 'Terjadi kesalahan di server',
       data: null
     });
   }
@@ -115,16 +108,16 @@ router.get("/:id", async (req, res) => {
      
       res.send({
         
-        data:daftar_produk,
-          success: true,
-          message: `Data produk berhasil ditambahkan dengan ID ${daftar_produk.id}`,
+        success: daftar_produk.success,
+        message:daftar_produk.message,
+        data:daftar_produk.data,
       });
     } catch (error) {
       console.error('Error creating produk:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  router.patch("/:id", upload.none(),async (req, res) => {
+  router.put("/:id", upload.none(),async (req, res) => {
       const { id } = req.params;
       const updatedDaftarProdukData = req.body;
      
@@ -144,9 +137,9 @@ router.delete("/:id", async (req, res) => {
 
     
     // If the daftar_produk exists, delete it
-   await deleteDaftarProdukById(parseInt(id))
+   const produk = await deleteDaftarProdukById(parseInt(id))
 
-    res.json({ message: "daftar_produk deleted successfully" });
+    res.send(produk);
   } catch (error) {
     console.error('Error deleting daftar_produk:', error);
     res.status(500).json({ error: 'Internal Server Error' });
