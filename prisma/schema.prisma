@@ -195,8 +195,9 @@ model restok_bahan {
 }
 model supplier {
   id       Int      @id @default(autoincrement())
-  kode     String
+  kode     String?
   nama     String
+  pic      String?
   alamat   String
   kontak   String
   no_rek   String

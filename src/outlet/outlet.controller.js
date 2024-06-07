@@ -17,13 +17,13 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     // Extract query parameters for search criteria, page number, and page size
-    const { searchCriteria, page = 1, pageSize = 10 } = req.query;
+    const { searchCriteria, page = 1, itemsPerPage = 10 } = req.query;
 
     // Parse search criteria if provided
     const parsedSearchCriteria = searchCriteria ? JSON.parse(searchCriteria) : {};
 
     // Fetch outlets data based on provided search criteria, page number, and page size
-    const outlets = await getoutlets(parsedSearchCriteria, parseInt(page), parseInt(pageSize));
+    const outlets = await getoutlets(parsedSearchCriteria, parseInt(page), parseInt(itemsPerPage));
 
     // Send the response
     res.send(outlets);

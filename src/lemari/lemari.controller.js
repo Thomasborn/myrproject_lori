@@ -15,10 +15,10 @@ const { findLemariById } = require("./lemari.repository");
 const router = express.Router();
 router.get("/", async (req, res) => {
     // Extract pagination parameters from the request query
-    const { kode,page = 1, pageSize = 10 } = req.query;
+    const { kode,page = 1, itemsPerPage = 10 } = req.query;
 
     // Call getLemari function with pagination parameters
-    const lemari = await getLemari(kode,parseInt(page), parseInt(pageSize));
+    const lemari = await getLemari(kode,parseInt(page), parseInt(itemsPerPage));
 
     // Send the response
     res.send(lemari);

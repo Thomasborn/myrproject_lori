@@ -44,7 +44,7 @@ router.use("/produksi",ProduksiController);
 router.use("/pengecekan",PengecekanController);
 router.use("/pengecekan_bahan",PengecekanBahanController);
 router.use("/pemesanan",PemesananBahanController);
-router.use("/supplier",SupplierController);
+router.use("/master/pemasok",SupplierController);
 router.use("/master/outlet",OutletController);
 router.use("/master/gawangan",GawanganController);
 router.use("/pembelians",PembelianController);

@@ -4,7 +4,7 @@ const prisma = require("../db");
 const {
   insertModelProduk
 } = require("../model_produk/model_produk.service");
-const findDaftarProduk = async (searchCriteria = {}, page = 1, pageSize = 10) => {
+const findDaftarProdukList = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
     // Fetch daftar_produk data based on search criteria and pagination parameters
     const daftar_produk = await prisma.daftar_produk.findMany({
       where: searchCriteria,
@@ -20,8 +20,8 @@ const findDaftarProduk = async (searchCriteria = {}, page = 1, pageSize = 10) =>
           }
         }
       },
-      skip: (page - 1) * pageSize,
-      take: pageSize
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage
     });
 
     // Calculate hargaJualMax and hargaJualMin after fetching the data
@@ -47,12 +47,13 @@ const findDaftarProduk = async (searchCriteria = {}, page = 1, pageSize = 10) =>
       where: searchCriteria
     });
 
-    const totalPages = Math.ceil(totalProduk / pageSize);
+    const totalPages = Math.ceil(totalProduk / itemsPerPage);
 
     return {
       success: true,
       message: "Data Produk berhasil diperoleh",
       dataTitle: "Produk",
+      itemsPerPage: itemsPerPage,
       totalPages: totalPages,
       totalData: totalProduk,
       page: page,
@@ -63,6 +64,82 @@ const findDaftarProduk = async (searchCriteria = {}, page = 1, pageSize = 10) =>
  
 };
 
+const findDaftarProduk = async () => {
+  const daftar_produk_list = await prisma.daftar_produk.findMany({
+    include: {
+      detail_model_produk: {
+        include: {
+          model_produk: {
+            include: {
+              kategori: true,
+              foto_produk: true
+            }
+          },
+          bahan_produk: {
+            include: {
+              daftar_bahan: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  if (daftar_produk_list.length === 0) {
+    return {
+      success: false,
+      message: "Tidak ada produk yang ditemukan",
+    };
+  }
+
+  const transformedDataList = daftar_produk_list.map(daftar_produk => {
+    const transformedData = {
+      id: daftar_produk.id,
+      nama: daftar_produk.sku, // Assuming 'sku' is the name of the product
+      kode: daftar_produk.detail_model_produk.model_produk.kode,
+      kategori: daftar_produk.detail_model_produk.model_produk.kategori.nama,
+      foto: daftar_produk.detail_model_produk.model_produk.foto_produk, // Assuming 'foto_produk' is an array of photos
+      deskripsi: daftar_produk.detail_model_produk.model_produk.deskripsi,
+      varian: [
+        {
+          ukuran: daftar_produk.detail_model_produk.ukuran,
+          stok: daftar_produk.detail_model_produk.jumlah ?? 0, // Assuming 'jumlah' is the stock quantity
+          biayaJahit: daftar_produk.detail_model_produk.biaya_jahit,
+          hpp: daftar_produk.detail_model_produk.hpp,
+          hargaJual: daftar_produk.detail_model_produk.harga_jual,
+          // bahan: daftar_produk.detail_model_produk.bahan_produk.map(bahan => ({
+          //   id: bahan.daftar_bahan.id,
+          //   nama: bahan.daftar_bahan.nama,
+          //   kode: bahan.daftar_bahan.kode,
+          //   harga: bahan.daftar_bahan.harga,
+          //   jumlahPakai: bahan.jumlah, // Assuming 'jumlah' is the quantity used
+          //   satuan: bahan.daftar_bahan.satuan,
+          //   biayaBahan: bahan.jumlah * bahan.daftar_bahan.harga // Assuming 'jumlah' is the quantity used
+          // })),
+          totalBiayaBahan: daftar_produk.detail_model_produk.bahan_produk.reduce((total, bahan) => total + (bahan.jumlah * bahan.daftar_bahan.harga), 0) // Total cost of all materials
+        }
+      ]
+    };
+
+    // Additional calculations
+    const stok = transformedData.varian.reduce((totalStok, variant) => totalStok + variant.stok, 0);
+    const hargaJualMin = transformedData.varian.length > 0 ? Math.min(...transformedData.varian.map(variant => variant.hargaJual)) : 0;
+    const hargaJualMax = transformedData.varian.length > 0 ? Math.max(...transformedData.varian.map(variant => variant.hargaJual)) : 0;
+
+    // Add additional properties to the transformed data
+    transformedData.stok = stok;
+    transformedData.hargaJualMin = hargaJualMin;
+    transformedData.hargaJualMax = hargaJualMax;
+
+    return transformedData;
+  });
+
+  return {
+    success: true,
+    message: "Data produk berhasil diperoleh",
+    data: transformedDataList
+  };
+}
 
   const findDaftarProdukById = async (id) => {
     const daftar_produk = await prisma.daftar_produk.findUnique({
@@ -269,13 +346,47 @@ const insertDaftarProdukRepo = async (data) => {
 // };
 
 const updateDaftarProdukRepo = async (id,updatedProdukData) => {
-        const existingProduk = await prisma.daftar_produk.findUnique({
-          where: { id: parseInt(id) },
-        });
-        
-        if (!existingProduk) {
-            return res.status(404).json({ error: "daftar_produk not found" });
+  const daftarProduk = await prisma.daftar_produk.findUnique({
+    where: { id },
+    include: {
+      detail_model_produk: {
+        include: {
+          model_produk: true,
+        }
       }
+    },
+  });
+
+  if (!daftarProduk) {
+    return {
+      success: false,
+      message: 'Produk tidak ditemukan.',
+    };
+  }
+
+
+  // Delete bahan_produk related to detail_model_produk
+  await prisma.bahan_produk.deleteMany({
+    where: { detail_model_produk_id: daftarProduk.detail_model_produk.id },
+  });
+  // Delete daftar_produk itself
+  // await prisma.daftar_produk.delete({
+  //   where: { id },
+  // });
+ 
+  // Delete detail_model_produk
+  await prisma.detail_model_produk.delete({
+    where: { id: daftarProduk.detail_model_produk.id },
+  });
+
+// Delete foto_produk related to model_produk
+  await prisma.foto_produk.deleteMany({
+    where: { model_produk_id: daftarProduk.detail_model_produk.model_produk.id },
+  });
+  // Delete model_produk
+  await prisma.model_produk.delete({
+    where: { id: daftarProduk.detail_model_produk.model_produk.id },
+  });
 
       // Validate and update the daftar_produk data
       const updatedProduk = await prisma.daftar_produk.update({
@@ -305,7 +416,7 @@ const deleteDaftarProdukByIdRepo = async (id) => {
     if (!daftarProduk) {
       return {
         success: false,
-        message: 'Daftar produk tidak ditemukan.',
+        message: 'Produk tidak ditemukan.',
       };
     }
 
@@ -337,7 +448,7 @@ const deleteDaftarProdukByIdRepo = async (id) => {
 
     return {
       success: true,
-      message: `Daftar produk dengan ID ${id} berhasil dihapus.`,
+      message: `Produk dengan ID ${id} berhasil dihapus.`,
     };
   } catch (error) {
     return {

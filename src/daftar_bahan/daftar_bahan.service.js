@@ -1,11 +1,11 @@
 const prisma = require("../db");
 const { findBahan, findBahanById, insertBahanRepo, updateBahanRepo, deleteBahanByIdRepo } = require("./daftar_bahan.repository");
-const getBahan = async (kategori, page = 1, pageSize = 10) => {
+const getBahan = async (kategori, page = 1, itemsPerPage = 10) => {
     // Calculate pagination offsets
-    const offset = (page - 1) * pageSize;
+    const offset = (page - 1) * itemsPerPage;
 
     // Fetch materials based on category and pagination parameters
-    const daftar_bahan = await findBahan(kategori, offset, pageSize);
+    const daftar_bahan = await findBahan(kategori, offset, itemsPerPage);
 
     return daftar_bahan;
 

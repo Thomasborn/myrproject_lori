@@ -1,8 +1,8 @@
 const prisma = require("../db");
 const { findkaryawan, findkaryawanById, insertkaryawanRepo, updatekaryawanRepo, deletekaryawanByIdRepo } = require("./karyawan.repository");
 
-const getkaryawans = async (searchCriteria, page, pageSize) => {
-  const karyawan = await findkaryawan(searchCriteria, page, pageSize);
+const getkaryawans = async (searchCriteria, page, itemsPerPage) => {
+  const karyawan = await findkaryawan(searchCriteria, page, itemsPerPage);
 
   return karyawan;
 };

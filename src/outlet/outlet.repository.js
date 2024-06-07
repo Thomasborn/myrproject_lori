@@ -1,9 +1,9 @@
 
 const prisma = require("../db");
-const findoutlet = async (searchCriteria = {}, page = 1, pageSize = 10) => {
+const findoutlet = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
   try {
     // Calculate pagination offset
-    const offset = (page - 1) * pageSize;
+    const offset = (page - 1) * itemsPerPage;
 
     // Fetch outlets data based on search criteria and pagination parameters
     const outlets = await prisma.outlet.findMany({
@@ -17,7 +17,7 @@ const findoutlet = async (searchCriteria = {}, page = 1, pageSize = 10) => {
         }
       },
       skip: offset,
-      take: pageSize
+      take: itemsPerPage
     });
 
     // Fetch total count of outlets data based on search criteria
@@ -41,7 +41,8 @@ const findoutlet = async (searchCriteria = {}, page = 1, pageSize = 10) => {
       success: true,
       message: "Data Outlet berhasil diperoleh",
       dataTitle: "Outlet",
-      totalPages: Math.ceil(totalOutlets / pageSize),
+      itemsPerPage: itemsPerPage,
+      totalPages: Math.ceil(totalOutlets / itemsPerPage),
       totalData: totalOutlets,
       page: page,
       data: reshapedOutlets

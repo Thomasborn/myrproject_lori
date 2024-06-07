@@ -1,8 +1,8 @@
 const prisma = require("../db");
 const { findLemari, findLemariById, insertLemariRepo, updateLemariRepo, deleteLemariByIdRepo } = require("./lemari.repository");
-const getLemari = async (kode,page = 1, pageSize = 10) => {
+const getLemari = async (kode,page = 1, itemsPerPage = 10) => {
     // Call findLemari function with pagination parameters
-    const lemari = await findLemari(kode,page, pageSize);
+    const lemari = await findLemari(kode,page, itemsPerPage);
 
     return lemari;
  

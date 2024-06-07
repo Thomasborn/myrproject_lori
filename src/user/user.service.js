@@ -1,8 +1,8 @@
 const prisma = require("../db");
 const { finduser, finduserById, insertuserRepo, updateuserRepo, deleteuserByIdRepo } = require("./user.repository");
 
-const getusers = async (searchCriteria, page, pageSize) => {
-  const user = await finduser(searchCriteria, page, pageSize);
+const getusers = async (searchCriteria, page, itemsPerPage) => {
+  const user = await finduser(searchCriteria, page, itemsPerPage);
 
   return user;
 };

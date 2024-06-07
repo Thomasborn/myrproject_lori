@@ -30,7 +30,7 @@ router.post("/login",upload.none(), async(req, res)=> {
       if (isPasswordMatch) {
         const user = await authService.authenticateUser(email);
 
-        // res.json({ message: 'Logged in successfully', user });
+      
         
         if (user) {
           // Authentication successful
@@ -110,7 +110,7 @@ router.post('/logout', (req, res) => {
     res.clearCookie('connect.sid');
     permissionsCache.flushAll();
 
-  res.json({ message: `Logout success with '${cookieName}' dihapus` });
+  res.json({ message: `Berhasil keluar. '${cookieName}' dihapus` });
 });
 // Generate a random reset token
 function generateResetToken() {

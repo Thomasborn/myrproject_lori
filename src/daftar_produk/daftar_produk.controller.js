@@ -15,7 +15,7 @@ const {
 const router = express.Router();
 router.get("/", async (req, res) => {
     // Extracting query parameters for search and pagination
-    const { nama, kategori, page = 1, pageSize = 10 } = req.query;
+    const { nama, kategori, page = 1, itemsPerPage = 10 } = req.query;
 
     // Constructing search criteria based on provided query parameters
     const searchCriteria = {};
@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
     }
 
     // Fetching data based on search criteria and pagination
-    const result = await getDaftarProduk(searchCriteria, parseInt(page, 10), parseInt(pageSize, 10));
+    const result = await getDaftarProduk(searchCriteria, parseInt(page, 10), parseInt(itemsPerPage, 10));
 
     res.send(result);
   } 

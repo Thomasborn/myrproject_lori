@@ -1,15 +1,15 @@
 
 const prisma = require("../db");
-const findkaryawan = async (searchCriteria = {}, page = 1, pageSize = 10) => {
+const findkaryawan = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
   try {
     // Calculate pagination offset
-    const offset = (page - 1) * pageSize;
+    const offset = (page - 1) * itemsPerPage;
 
     // Fetch karyawan data based on search criteria and pagination parameters
     const karyawan = await prisma.karyawan.findMany({
       where: searchCriteria,
       skip: offset,
-      take: pageSize,
+      take: itemsPerPage,
     });
 
     // Fetch total count of karyawan data based on search criteria
@@ -35,7 +35,8 @@ const findkaryawan = async (searchCriteria = {}, page = 1, pageSize = 10) => {
       success: true,
       message: "Data Karyawan berhasil diperoleh",
       dataTitle: "Karyawan",
-      totalPages: Math.ceil(totalKaryawan / pageSize),
+      itemsPerPage:  itemsPerPage,
+      totalPages: Math.ceil(totalKaryawan / itemsPerPage),
       totalData: totalKaryawan,
       page: page,
       data: reshapedKaryawan

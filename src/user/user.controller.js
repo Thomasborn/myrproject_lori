@@ -15,11 +15,11 @@ const {
 
 const router = express.Router();
 router.get("/",async (req,res) => {
-  const { searchCriteria, page = 1, pageSize = 10 } = req.query;
+  const { searchCriteria, page = 1, itemsPerPage = 10 } = req.query;
 
   // Parse search criteria if provided
   const parsedSearchCriteria = searchCriteria ? JSON.parse(searchCriteria) : {};
-    const user =  await getusers(parsedSearchCriteria,parseInt(page),parseInt(pageSize));
+    const user =  await getusers(parsedSearchCriteria,parseInt(page),parseInt(itemsPerPage));
     res.send(user);
  });
 

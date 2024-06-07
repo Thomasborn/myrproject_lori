@@ -1,9 +1,9 @@
 const prisma = require("../db");
 const { findDaftarProduk, findDaftarProdukById, insertDaftarProdukRepo, updateDaftarProdukRepo, deleteDaftarProdukByIdRepo } = require("./daftar_produk.repository");
-const getDaftarProduk = async (searchCriteria, page, pageSize) => {
+const getDaftarProduk = async (searchCriteria, page, itemsPerPage) => {
   try {
     // Fetch all data based on search criteria
-    const allDaftarProduk = await findDaftarProduk(searchCriteria,page,pageSize);
+    const allDaftarProduk = await findDaftarProduk(searchCriteria,page,itemsPerPage);
     // Return paginated data with pagination details
     return allDaftarProduk;
   } catch (error) {

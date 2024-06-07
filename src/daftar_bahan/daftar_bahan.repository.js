@@ -4,13 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-const findBahan = async (kategori, page = 1, pageSize = 10) => {
+const findBahan = async (kategori, page = 1, itemsPerPage = 10) => {
    try {
     // Ensure page is at least 1
     page = Math.max(page, 1);
 
     // Calculate pagination offset
-    const offset = (page - 1) * pageSize;
+    const offset = (page - 1) * itemsPerPage;
 
     // Construct search criteria including category filtering if provided
     const searchCriteria = kategori ? { kategori } : {};
@@ -24,7 +24,7 @@ const findBahan = async (kategori, page = 1, pageSize = 10) => {
     const daftarBahan = await prisma.daftar_bahan.findMany({
       where: searchCriteria,
       skip: offset,
-      take: pageSize,
+      take: itemsPerPage,
     });
     // Fetch restok_bahan data related to each daftar_bahan
     const daftarBahanWithRestok = await Promise.all(daftarBahan.map(async (bahan) => {
@@ -64,7 +64,8 @@ const findBahan = async (kategori, page = 1, pageSize = 10) => {
       success: true,
       message: "Data Bahan berhasil diperoleh",
       dataTitle: "Bahan",
-      totalPages: Math.ceil(totalMaterials / pageSize),
+      itemsPerPage: itemsPerPage,
+      totalPages: Math.ceil(totalMaterials / itemsPerPage),
       totalData: totalMaterials,
       page: page,
       data: daftarBahanWithRestok,

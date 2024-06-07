@@ -1,6 +1,6 @@
 
 const prisma = require("../db");
-const finduser = async (searchCriteria = {}, page = 1, pageSize = 10) => {
+const finduser = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
   try {
     const { nama, email, role, status } = searchCriteria;
 
@@ -15,8 +15,8 @@ const finduser = async (searchCriteria = {}, page = 1, pageSize = 10) => {
     };
 
     // Calculate pagination values
-    const skip = (page - 1) * pageSize;
-    const take = pageSize;
+    const skip = (page - 1) * itemsPerPage;
+    const take = itemsPerPage;
 
     // Fetch users with Prisma, including search criteria and pagination
     const users = await prisma.user.findMany({
@@ -60,7 +60,8 @@ const finduser = async (searchCriteria = {}, page = 1, pageSize = 10) => {
       success: true,
       message: "Data pengguna berhasil ditemukan.",
       dataTitle: "Pengguna",
-      totalPages: Math.ceil(totalCount / pageSize),
+      itemsPerPage: itemsPerPage,
+      totalPages: Math.ceil(totalCount / itemsPerPage),
       totalData: totalCount,
       page: page,
       data: transformedUsers

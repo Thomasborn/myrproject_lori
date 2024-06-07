@@ -1,9 +1,9 @@
 
 const prisma = require("../db");
-const findLemari = async (kode, page = 1, pageSize = 10) => {
+const findLemari = async (kode, page = 1, itemsPerPage = 10) => {
   try {
     // Calculate pagination offset
-    const offset = (page - 1) * pageSize;
+    const offset = (page - 1) * itemsPerPage;
 
     // Construct search criteria including kode filtering if provided
     const searchCriteria = kode ? { nama: { contains: kode.toString() } } : {};
@@ -20,7 +20,7 @@ const findLemari = async (kode, page = 1, pageSize = 10) => {
       },
       where: searchCriteria,
       skip: offset,
-      take: pageSize,
+      take: itemsPerPage,
     });
 
     // Reshape the data
@@ -37,7 +37,8 @@ const findLemari = async (kode, page = 1, pageSize = 10) => {
       success: true,
       message: "Data Rak berhasil diperoleh",
       dataTitle: "Rak",
-      totalPages: Math.ceil(totalLemari / pageSize),
+      itemsPerPage: itemsPerPage,
+      totalPages: Math.ceil(totalLemari / itemsPerPage),
       totalData: totalLemari,
       page: page,
       data: reshapedLemari,

@@ -16,10 +16,10 @@ const {
 const router = express.Router();
 router.get("/", async (req, res) => {
   try {
-    const { kategori, page = 1, pageSize = 10 } = req.query;
+    const { kategori, page = 1, itemsPerPage = 10 } = req.query;
 
     // Fetch materials with category and pagination parameters
-    const daftar_bahan = await getBahan(kategori, parseInt(page), parseInt(pageSize));
+    const daftar_bahan = await getBahan(kategori, parseInt(page), parseInt(itemsPerPage));
 
     res.send(daftar_bahan);
   } catch (error) {

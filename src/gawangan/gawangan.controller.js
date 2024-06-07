@@ -17,13 +17,13 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     // Extract query parameters for search and pagination
-    const { searchCriteria, page = 1, pageSize = 10 } = req.query;
+    const { searchCriteria, page = 1, itemsPerPage = 10 } = req.query;
 
     // Parse searchCriteria if provided
     const parsedSearchCriteria = searchCriteria ? JSON.parse(searchCriteria) : {};
 
-    // Fetch gawangan data based on provided search criteria, page, and pageSize
-    const gawangan = await getGawangan(parsedSearchCriteria, parseInt(page), parseInt(pageSize));
+    // Fetch gawangan data based on provided search criteria, page, and itemsPerPage
+    const gawangan = await getGawangan(parsedSearchCriteria, parseInt(page), parseInt(itemsPerPage));
 
     // Send the response
     res.send(gawangan);

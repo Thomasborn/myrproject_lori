@@ -1,8 +1,8 @@
 
 const prisma = require("../db");
-const findGawangan = async (searchCriteria = {}, page = 1, pageSize = 10) => {
+const findGawangan = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
   // Calculate pagination offset
-  const offset = (page - 1) * pageSize;
+  const offset = (page - 1) * itemsPerPage;
 
   // Fetch gawangan data based on search criteria and pagination parameters
   const gawanganData = await prisma.gawangan.findMany({
@@ -12,7 +12,7 @@ const findGawangan = async (searchCriteria = {}, page = 1, pageSize = 10) => {
       // detailGawangan: true,
     },
     skip: offset,
-    take: pageSize,
+    take: itemsPerPage,
   });
 
   // Fetch total count of gawangan data based on search criteria
@@ -32,7 +32,8 @@ const findGawangan = async (searchCriteria = {}, page = 1, pageSize = 10) => {
     success: true,
     message: "Data gawangan berhasil diperoleh",
     dataTitle: "Gawangan",
-    totalPages: Math.ceil(totalGawangan / pageSize),
+    itemsPerPage: itemsPerPage,
+    totalPages: Math.ceil(totalGawangan / itemsPerPage),
     totalData: totalGawangan,
     page: page,
     data: reshapedData
