@@ -4,10 +4,10 @@ const prisma = require("../db");
 const {
   insertModelProduk
 } = require("../model_produk/model_produk.service");
-const findDaftarProdukList = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
+const findDaftarProdukList = async (q = {}, page = 1, itemsPerPage = 10) => {
     // Fetch daftar_produk data based on search criteria and pagination parameters
     const daftar_produk = await prisma.daftar_produk.findMany({
-      where: searchCriteria,
+      where: q,
       include: {
         detail_model_produk: {
           include: {
@@ -44,7 +44,7 @@ const findDaftarProdukList = async (searchCriteria = {}, page = 1, itemsPerPage 
 
     // Fetch total count of daftar_produk for pagination
     const totalProduk = await prisma.daftar_produk.count({
-      where: searchCriteria
+      where: q
     });
 
     const totalPages = Math.ceil(totalProduk / itemsPerPage);
@@ -62,27 +62,67 @@ const findDaftarProdukList = async (searchCriteria = {}, page = 1, itemsPerPage 
     
 
  
-};
+};const findDaftarProduk = async (q, kategori, page = 1, itemsPerPage = 10) => {
+  let whereClause = {};
 
-const findDaftarProduk = async () => {
+  if (q) {
+    whereClause = {
+      ...whereClause,
+      detail_model_produk: {
+        model_produk: {
+          OR: [
+            {
+              nama: {
+                contains: q,
+                mode: 'insensitive',
+              },
+            },
+            {
+              kode: {
+                contains: q,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        },
+      },
+    };
+  }
+
+  if (kategori) {
+    whereClause = {
+      ...whereClause,
+      detail_model_produk: {
+        model_produk: {
+          kategori: {
+            nama: kategori,
+          },
+        },
+      },
+    };
+  }
+
   const daftar_produk_list = await prisma.daftar_produk.findMany({
+    where: whereClause,
     include: {
       detail_model_produk: {
         include: {
           model_produk: {
             include: {
               kategori: true,
-              foto_produk: true
-            }
+              foto_produk: true,
+            },
           },
           bahan_produk: {
             include: {
-              daftar_bahan: true
-            }
-          }
-        }
-      }
-    }
+              daftar_bahan: true,
+            },
+          },
+        },
+      },
+    },
+    skip: (page - 1) * itemsPerPage,
+    take: itemsPerPage,
   });
 
   if (daftar_produk_list.length === 0) {
@@ -95,38 +135,36 @@ const findDaftarProduk = async () => {
   const transformedDataList = daftar_produk_list.map(daftar_produk => {
     const transformedData = {
       id: daftar_produk.id,
-      nama: daftar_produk.sku, // Assuming 'sku' is the name of the product
+      nama: daftar_produk.detail_model_produk.model_produk.nama_produk,
       kode: daftar_produk.detail_model_produk.model_produk.kode,
       kategori: daftar_produk.detail_model_produk.model_produk.kategori.nama,
-      foto: daftar_produk.detail_model_produk.model_produk.foto_produk, // Assuming 'foto_produk' is an array of photos
+      foto: daftar_produk.detail_model_produk.model_produk.foto_produk.map(foto => foto.url),
       deskripsi: daftar_produk.detail_model_produk.model_produk.deskripsi,
       varian: [
         {
           ukuran: daftar_produk.detail_model_produk.ukuran,
-          stok: daftar_produk.detail_model_produk.jumlah ?? 0, // Assuming 'jumlah' is the stock quantity
+          stok: daftar_produk.detail_model_produk.jumlah ?? 0,
           biayaJahit: daftar_produk.detail_model_produk.biaya_jahit,
           hpp: daftar_produk.detail_model_produk.hpp,
           hargaJual: daftar_produk.detail_model_produk.harga_jual,
-          // bahan: daftar_produk.detail_model_produk.bahan_produk.map(bahan => ({
-          //   id: bahan.daftar_bahan.id,
-          //   nama: bahan.daftar_bahan.nama,
-          //   kode: bahan.daftar_bahan.kode,
-          //   harga: bahan.daftar_bahan.harga,
-          //   jumlahPakai: bahan.jumlah, // Assuming 'jumlah' is the quantity used
-          //   satuan: bahan.daftar_bahan.satuan,
-          //   biayaBahan: bahan.jumlah * bahan.daftar_bahan.harga // Assuming 'jumlah' is the quantity used
-          // })),
-          totalBiayaBahan: daftar_produk.detail_model_produk.bahan_produk.reduce((total, bahan) => total + (bahan.jumlah * bahan.daftar_bahan.harga), 0) // Total cost of all materials
+          bahan: daftar_produk.detail_model_produk.bahan_produk.map(bahan => ({
+            id: bahan.daftar_bahan.id,
+            nama: bahan.daftar_bahan.nama,
+            kode: bahan.daftar_bahan.kode,
+            harga: bahan.daftar_bahan.harga,
+            jumlahPakai: bahan.jumlah,
+            satuan: bahan.daftar_bahan.satuan,
+            biayaBahan: bahan.jumlah * bahan.daftar_bahan.harga
+          })),
+          totalBiayaBahan: daftar_produk.detail_model_produk.bahan_produk.reduce((total, bahan) => total + (bahan.jumlah * bahan.daftar_bahan.harga), 0)
         }
       ]
     };
 
-    // Additional calculations
     const stok = transformedData.varian.reduce((totalStok, variant) => totalStok + variant.stok, 0);
     const hargaJualMin = transformedData.varian.length > 0 ? Math.min(...transformedData.varian.map(variant => variant.hargaJual)) : 0;
     const hargaJualMax = transformedData.varian.length > 0 ? Math.max(...transformedData.varian.map(variant => variant.hargaJual)) : 0;
 
-    // Add additional properties to the transformed data
     transformedData.stok = stok;
     transformedData.hargaJualMin = hargaJualMin;
     transformedData.hargaJualMax = hargaJualMax;
@@ -139,7 +177,7 @@ const findDaftarProduk = async () => {
     message: "Data produk berhasil diperoleh",
     data: transformedDataList
   };
-}
+};
 
   const findDaftarProdukById = async (id) => {
     const daftar_produk = await prisma.daftar_produk.findUnique({
@@ -454,7 +492,7 @@ const deleteDaftarProdukByIdRepo = async (id) => {
     return {
       success: false,
       message: 'Gagal menghapus daftar produk.',
-      error: error.message || 'Internal server error',
+      error: error.message || 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi',
     };
   }
 };

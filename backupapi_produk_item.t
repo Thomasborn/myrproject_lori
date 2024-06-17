@@ -28,7 +28,7 @@ router.get("/produks",async (req,res) => {
       });
     } catch (error) {
       console.error('Error creating produk:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.delete("/produks/:id", async (req, res) => {
@@ -51,7 +51,7 @@ router.get("/produks",async (req,res) => {
       res.json({ message: "Produk_Item deleted successfully" });
     } catch (error) {
       console.error('Error deleting produk_Item:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/produks/:id", upload.none(),async (req, res) => {
@@ -86,7 +86,7 @@ router.get("/produks",async (req,res) => {
       res.send({ message: "Produk_Item updated successfully", updatedProduk });
     } catch (error) {
       console.error('Error updating produk_Item:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.put("/produks/:id", upload.none(), async (req, res) => {
@@ -120,7 +120,7 @@ router.get("/produks",async (req,res) => {
       res.send({ message: "Produk_Item updated successfully", updatedProduk });
     } catch (error) {
       console.error('Error updating produk_Item:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
 

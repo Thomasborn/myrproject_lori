@@ -1,8 +1,8 @@
 const prisma = require("../db");
 const { findQcProduk, findQcProdukById, insertQcProdukRepo, updateQcProdukRepo, deleteQcProdukByIdRepo } = require("./qc_produk.repository");
 
-const getQcProduk = async () => {
-  const qc_produk = await findQcProduk();
+const getQcProduk = async (query) => {
+  const qc_produk = await findQcProduk(query);
 
   return qc_produk;
 };

@@ -45,7 +45,7 @@ router.post("/", upload.none(), async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating Kustom:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/:id", upload.none(),async (req, res) => {
@@ -59,7 +59,7 @@ router.post("/", upload.none(), async (req, res) => {
     res.send({data:kustom, message: "kustom updated successfully" });
 } catch (error) {
     console.error('Error updating kustom:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -73,7 +73,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "kustom deleted successfully" });
   } catch (error) {
     console.error('Error deleting kustom:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

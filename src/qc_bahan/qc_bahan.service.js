@@ -1,8 +1,8 @@
 const prisma = require("../db");
 const { findQcBahan, findQcBahanById, insertQcBahanRepo, updateQcBahanRepo, deleteQcBahanByIdRepo } = require("./qc_bahan.repository");
 
-const getQcBahan = async () => {
-  const qc_bahan = await findQcBahan();
+const getQcBahan = async (queryParams) => {
+  const qc_bahan = await findQcBahan(queryParams);
 
   return qc_bahan;
 };
@@ -18,9 +18,8 @@ const getQcBahanById = async (id) => {
   return qc_bahan;
 };
 const deleteQcBahanById = async (id) => {
-  await getQcBahanById(id);
-  await deleteQcBahanByIdRepo(id)
- 
+  const daftar_bahan =  await deleteQcBahanByIdRepo(id)
+  return daftar_bahan;
 };
 const insertQcBahan = async (newprodukData)=>{
   const qc_bahan = await insertQcBahanRepo(newprodukData);

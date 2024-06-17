@@ -1,16 +1,24 @@
 
 const prisma = require("../db");
-const findLemari = async (kode, page = 1, itemsPerPage = 10) => {
+const findLemari = async (q, page = 1, itemsPerPage = 10) => {
   try {
+    // Ensure page is at least 1
+    page = Math.max(page, 1);
+
     // Calculate pagination offset
     const offset = (page - 1) * itemsPerPage;
 
-    // Construct search criteria including kode filtering if provided
-    const searchCriteria = kode ? { nama: { contains: kode.toString() } } : {};
+    // Construct search criteria
+    let whereClause = {};
+    if (q) {
+      whereClause = {
+        kode: { contains: q.toString(), mode: 'insensitive' }
+      };
+    }
 
     // Fetch count of lemari data based on search criteria
     const totalLemari = await prisma.lemari.count({
-      where: searchCriteria,
+      where: whereClause,
     });
 
     // Fetch lemari data with outlet information based on pagination parameters and search criteria
@@ -18,7 +26,7 @@ const findLemari = async (kode, page = 1, itemsPerPage = 10) => {
       include: {
         outlet: true,
       },
-      where: searchCriteria,
+      where: whereClause,
       skip: offset,
       take: itemsPerPage,
     });
@@ -30,7 +38,7 @@ const findLemari = async (kode, page = 1, itemsPerPage = 10) => {
       kapasitas: lemari.kapasitas,
       idOutlet: lemari.outlet_id,
       outlet: lemari.outlet ? lemari.outlet.nama : null,
-      kodeOutlet: lemari.outlet ? lemari.outlet.kode : null,
+      deskripsi: lemari.deskripsi,
     }));
 
     return {
@@ -42,15 +50,16 @@ const findLemari = async (kode, page = 1, itemsPerPage = 10) => {
       totalData: totalLemari,
       page: page,
       data: reshapedLemari,
-      search: searchCriteria
+      search: q ? { kode: q } : {} // Return search criteria for kode if q is provided
     };
-    
 
   } catch (error) {
     console.error("Error fetching lemari:", error);
     throw new Error("Error fetching lemari");
   }
 };
+
+
 
 const findLemariById = async (id) => {
   // Fetch the lemari entry by ID, including related outlet data

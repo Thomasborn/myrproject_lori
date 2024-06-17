@@ -15,30 +15,10 @@ const {
 const router = express.Router();
 router.get("/", async (req, res) => {
     // Extracting query parameters for search and pagination
-    const { nama, kategori, page = 1, itemsPerPage = 10 } = req.query;
-
-    // Constructing search criteria based on provided query parameters
-    const searchCriteria = {};
-    if (nama) {
-      searchCriteria["detail_model_produk"] = {
-        "model_produk": {
-          "nama": { contains: nama }
-        }
-      };
-    }
-    if (kategori) {
-      if (!searchCriteria["detail_model_produk"]) {
-        searchCriteria["detail_model_produk"] = {};
-      }
-      searchCriteria["detail_model_produk"]["model_produk"] = {
-        "kategori": {
-          "nama": { contains: kategori }
-        }
-      };
-    }
+    const { q, kategori, page = 1, itemsPerPage = 10 } = req.query;
 
     // Fetching data based on search criteria and pagination
-    const result = await getDaftarProduk(searchCriteria, parseInt(page, 10), parseInt(itemsPerPage, 10));
+    const result = await getDaftarProduk(q, kategori,parseInt(page, 10), parseInt(itemsPerPage, 10));
 
     res.send(result);
   } 
@@ -48,7 +28,6 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const produkId = parseInt(req.params.id, 10);
-
     if (isNaN(produkId)) {
       return res.status(400).send({ 
         success: false, 
@@ -58,20 +37,7 @@ router.get("/:id", async (req, res) => {
     }
 
     const daftar_produk = await getDaftarProdukById(produkId);
-
-    if (!daftar_produk) {
-      return res.status(404).send({
-        success: false,
-        message: "Produk ID:"+produkId+"tidak ditemukan",
-        data: null
-      });
-    }
-
-    res.send({
-      success: daftar_produk.success,
-      message: daftar_produk.message,
-      data: daftar_produk.data
-    });
+    res.send(daftar_produk);
   } catch (err) {
     console.error('Error fetching product:', err);
     res.status(500).send({
@@ -103,18 +69,10 @@ router.get("/:id", async (req, res) => {
           foto: req.files, 
         };
         const daftar_produk = await insertDaftarProduk(data);
-    
-  
-     
-      res.send({
-        
-        success: daftar_produk.success,
-        message:daftar_produk.message,
-        data:daftar_produk.data,
-      });
+      res.send(daftar_produk);
     } catch (error) {
       console.error('Error creating produk:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.put("/:id", upload.none(),async (req, res) => {
@@ -125,10 +83,10 @@ router.get("/:id", async (req, res) => {
           // Check if the daftar_produk exists before attempting to update it
         const daftar_produk = await updatedDaftarProduk(parseInt(id),updatedDaftarProdukData)
     
-    res.send({data:daftar_produk, message: "daftar_produk updated successfully" });
+    res.send(daftar_produk);
 } catch (error) {
     console.error('Error updating daftar_produk:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -142,7 +100,7 @@ router.delete("/:id", async (req, res) => {
     res.send(produk);
   } catch (error) {
     console.error('Error deleting daftar_produk:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

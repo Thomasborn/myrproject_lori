@@ -1,7 +1,7 @@
 const prisma = require("../db");
 const { findoutlet, findoutletById, insertoutletRepo, updateoutletRepo, deleteoutletByIdRepo } = require("./outlet.repository");
-const getoutlets = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
-  const outlets = await findoutlet(searchCriteria, page, itemsPerPage);
+const getOutlet = async (q, page = 1, itemsPerPage = 10) => {
+  const outlets = await findoutlet(q, page, itemsPerPage);
   return outlets;
 };
 
@@ -32,7 +32,7 @@ const updatedoutlet = async (id,updatedoutletData)=>{
   return outlet;
 };
 module.exports = {
-  getoutlets,
+  getOutlet,
   getoutletById,
   insertoutlet,
   updatedoutlet,

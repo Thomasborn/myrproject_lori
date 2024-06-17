@@ -34,7 +34,7 @@ router.post("/login",upload.none(), async(req, res)=> {
         if (user) {
           // Authentication successful
           const token = authService.generateAuthToken(email);
-          const {id,...karyawan} = await authKaryawan.getkaryawanById(user.karyawan_id);
+          const {id,...karyawan} = await authKaryawan.getKaryawanById(user.karyawan_id);
 
           if (!req.session.user) {
             req.session.user = {}; // Initialize the user object if it doesn't exist
@@ -65,7 +65,7 @@ router.post("/login",upload.none(), async(req, res)=> {
     }
   } catch (err) {
     console.error('Error in user authentication:', err);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 
 });
@@ -90,7 +90,7 @@ router.post("/register", upload.none(),async (req, res) => {
     } else {
       // Handle other errors
       console.error('Error in user registration:', err);
-      res.status(500).json({ message: 'Internal Server Error' });
+      res.status(500).json({ message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
 }});
 router.get('/logout', (req, res) => {
@@ -101,7 +101,7 @@ router.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error('Error destroying session:', err);
-      return res.status(500).json({ message: 'Internal Server Error' });
+      return res.status(500).json({ message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
     
     // Clear the session cookie by setting its expiration date to the past
@@ -163,7 +163,7 @@ router.post("/forget-password", upload.none(),async (req, res) => {
     } else {
       // Handle other errors
       console.error('Error in user registration:', err);
-      res.status(500).json({ message: 'Internal Server Error' });
+      res.status(500).json({ message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
 }});
 
@@ -194,7 +194,7 @@ router.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error('Error destroying session:', err);
-      return res.status(500).json({ message: 'Internal Server Error' });
+      return res.status(500).json({ message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
     
     // Clear the session cookie by setting its expiration date to the past

@@ -1,13 +1,21 @@
 
 const prisma = require("../db");
-const findoutlet = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
+const findoutlet = async (q, page = 1, itemsPerPage = 10) => {
   try {
     // Calculate pagination offset
     const offset = (page - 1) * itemsPerPage;
 
+    // Construct search criteria
+    const whereClause = q ? {
+      OR: [
+        { nama: { contains: q, mode: 'insensitive' } },
+        { kode: { contains: q, mode: 'insensitive' } },
+      ]
+    } : {};
+
     // Fetch outlets data based on search criteria and pagination parameters
     const outlets = await prisma.outlet.findMany({
-      where: searchCriteria,
+      where: whereClause,
       include: {
         karyawan: {
           select: {
@@ -22,7 +30,7 @@ const findoutlet = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
 
     // Fetch total count of outlets data based on search criteria
     const totalOutlets = await prisma.outlet.count({
-      where: searchCriteria
+      where: whereClause
     });
 
     // Reshape the fetched data
@@ -45,7 +53,8 @@ const findoutlet = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
       totalPages: Math.ceil(totalOutlets / itemsPerPage),
       totalData: totalOutlets,
       page: page,
-      data: reshapedOutlets
+      data: reshapedOutlets,
+      search: q || {} // Ensure search criteria is always returned, even if empty
     };
     
   } catch (error) {
@@ -53,6 +62,7 @@ const findoutlet = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
     throw new Error("Gagal mengambil data outlet");
   }
 };
+
 
 const findoutletById = async (id) => {
   try {
@@ -116,21 +126,40 @@ const reshapeOutletData = (outletData) => {
 };
 const insertoutletRepo = async (newoutletData) => {
   try {
-    const { kode, nama, alamat, keterangan, idKaryawanPic,kontakPic } = newoutletData;
+    const { kode, nama, alamat, keterangan, idKaryawanPic, kontakPic } = newoutletData;
 
-    const insertedOutlet = await prisma.outlet.create({ 
+    // Check if outlet with the same kode or nama already exists
+    const existingOutlet = await prisma.outlet.findFirst({
+      where: {
+        OR: [
+          { kode: kode },
+          { nama: nama }
+        ]
+      }
+    });
+
+    if (existingOutlet) {
+      return {
+        success: false,
+        message: `Gagal menambahkan data outlet, kode outlet '${kode}' atau nama outlet '${nama}' sudah ada`,
+        data: null
+      };
+    }
+
+    // If no existing outlet found, proceed with insertion
+    const insertedOutlet = await prisma.outlet.create({
       data: {
         kode,
         nama,
         alamat,
         deskripsi: keterangan,
-        idPic:idKaryawanPic,
-        no_telp:kontakPic
+        idPic: idKaryawanPic,
+        no_telp: kontakPic
       }
     });
 
+    // Fetch the inserted outlet data
     const outlet = await findoutletById(insertedOutlet.id);
-    // const reshapedData = reshapeOutletData(outlet);
 
     return {
       success: true,
@@ -155,7 +184,31 @@ const updateoutletRepo = async (id, updatedOutletData) => {
       return {
         success: false,
         message: `Outlet dengan ID ${id} tidak ditemukan.`,
+        data: null
       };
+    }
+
+    // Check if the updated kode or nama already exists for another outlet
+    if (kode !== existingOutlet.kode || nama !== existingOutlet.nama) {
+      const duplicateOutlet = await prisma.outlet.findFirst({
+        where: {
+          OR: [
+            { kode: kode },
+            { nama: nama }
+          ],
+          NOT: {
+            id: parseInt(id)
+          }
+        }
+      });
+
+      if (duplicateOutlet) {
+        return {
+          success: false,
+          message: `Gagal memperbarui data outlet. Kode atau nama outlet '${kode}' atau '${nama}' sudah ada.`,
+          data: null
+        };
+      }
     }
 
     // Perform the update operation using Prisma
@@ -169,6 +222,7 @@ const updateoutletRepo = async (id, updatedOutletData) => {
         karyawan: {
           connect: { id: idKaryawanPic },
         },
+        no_telp: kontakPic
       },
     });
 
@@ -185,9 +239,11 @@ const updateoutletRepo = async (id, updatedOutletData) => {
     return {
       success: false,
       message: "Gagal memperbarui data outlet.",
+      data: null
     };
   }
 };
+
 
 
 

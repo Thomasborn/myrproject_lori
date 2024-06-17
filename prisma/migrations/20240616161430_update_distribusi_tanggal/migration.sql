@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "distribusi" ADD COLUMN     "tanggl" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

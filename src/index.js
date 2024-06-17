@@ -58,7 +58,7 @@ app.use("/",router);
 //       res.json(produk);
 //     } catch (error) {
 //       console.error('Error creating produk:', error);
-//       res.status(500).json({ error: 'Internal Server Error' });
+//       res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 //     }
 //   });
 

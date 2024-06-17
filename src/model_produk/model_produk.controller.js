@@ -69,7 +69,7 @@ router.post("/", imageUpload, async (req, res) => {
      
     } catch (error) {
       console.error('Error creating ModelProduk:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.put("/:id", imageUpload,async (req, res) => {
@@ -105,7 +105,7 @@ router.post("/", imageUpload, async (req, res) => {
         
 } catch (error) {
     console.error('Error updating model_produk:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
   router.patch("/foto-produk/:id", imageSingleUpload,async (req, res) => {
@@ -135,7 +135,7 @@ router.post("/", imageUpload, async (req, res) => {
         
 } catch (error) {
     console.error('Error updating model_produk:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -150,7 +150,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "model_produk deleted successfully" });
   } catch (error) {
     console.error('Error deleting model_produk:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

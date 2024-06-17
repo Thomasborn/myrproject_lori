@@ -17,10 +17,10 @@ const router = express.Router();
 router.get("/",async (req,res) => {
   const { q, page = 1, itemsPerPage = 10 } = req.query;
 
-  // Parse searchCriteria if provided
-  const parsedSearchCriteria = q;
+  // Parse q if provided
+  const parsedq = q;
 
-    const supplier =  await getsuppliers(parsedSearchCriteria,parseInt(page),parseInt(itemsPerPage));
+    const supplier =  await getsuppliers(parsedq,parseInt(page),parseInt(itemsPerPage));
     res.send(supplier);
  });
 
@@ -46,7 +46,7 @@ router.post("/", upload.none(), async (req, res) => {
       res.send(supplier);
     } catch (error) {
       console.error('Error creating supplier:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.put("/:id", upload.none(),async (req, res) => {
@@ -60,7 +60,7 @@ router.post("/", upload.none(), async (req, res) => {
     res.send(supplier);
 } catch (error) {
     console.error('Error updating supplier:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -74,7 +74,7 @@ router.delete("/:id", async (req, res) => {
     res.send(supplier);
   } catch (error) {
     console.error('Error deleting supplier:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

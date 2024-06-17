@@ -1,28 +1,124 @@
 
 const prisma = require("../db");
+const findQcProduk = async (query) => {
+  const {
+    q,
+    bulanTemuan,
+    tahunTemuan,
+    bulanSelesai,
+    tahunSelesai,
+    status,
+    itemsPerPage,
+    page,
+  } = query;
 
-const findQcProduk = async () => {
+  const take = parseInt(itemsPerPage) || 10;
+  const skip = ((parseInt(page) || 1) - 1) * take;
+
+  const where = {
+    AND: [
+      bulanTemuan && tahunTemuan
+        ? { tanggal_temuan: { gte: new Date(tahunTemuan, bulanTemuan - 1, 1) } }
+        : {},
+      bulanSelesai && tahunSelesai
+        ? { tanggal_selesai: { lte: new Date(tahunSelesai, bulanSelesai, 0) } }
+        : {},
+      status ? { status: status } : {},
+      q ? { user: { karyawan: { nama: { contains: q, mode: 'insensitive' } } } } : {},
+    ],
+  };
+
   const qc_produk = await prisma.qc_produk.findMany({
+    where,
     include: {
-      // Include related data from 'qc_produk_produk' and 'kondisi_produk'
       daftar_produk: true,
-      user: true,
+      user: {
+        include: {
+          karyawan: true,
+        },
+      },
     },
+    take,
+    skip,
   });
-  
-  // Now 'qc_produks' contains the details with related 'qc_produk_produk' and 'kondisi_produk'
-  
-  return qc_produk;
-};
 
+  const totalData = await prisma.qc_produk.count({ where });
+
+  const reshapedData = qc_produk.map((qc) => ({
+    id: qc.id,
+    tanggalTemuan: qc.tanggal_temuan ? qc.tanggal_temuan.toLocaleDateString() : null,
+    tanggalSelesai: qc.tanggal_selesai ? qc.tanggal_selesai.toLocaleDateString() : null,
+    idProduk: qc.daftar_produk.id,
+    kodeProduk: qc.daftar_produk.kode,
+    namaProduk: qc.daftar_produk.nama,
+    kategoriProduk: qc.daftar_produk.kategori,
+    ukuranProduk: qc.daftar_produk.ukuran,
+    jumlah: qc.jumlah,
+    tindakan: qc.tindakan,
+    status: qc.status,
+    catatan: qc.catatan,
+    idPenggunaQc: qc.user.id,
+    namaPenggunaQc: qc.user.karyawan ? qc.user.karyawan.nama : null,
+  }));
+
+  return {
+    success: true,
+    message: "Data QC produk berhasil diperoleh",
+    dataTitle: "QC Bahan",
+    itemsPerPage: take,
+    totalPages: Math.ceil(totalData / take),
+    totalData,
+    page: page || "1",
+    data: reshapedData,
+  };
+};
 const findQcProdukById = async (id) => {
   const qc_produk = await prisma.qc_produk.findUnique({
-    where: {
-      id,
+    where: { id },
+    include: {
+      daftar_produk: true,
+      user: {
+        include: {
+          karyawan: true,
+        },
+      },
     },
   });
-  
-  return qc_produk;
+
+  if (!qc_produk) {
+    return {
+      success: false,
+      message: `Data QC produk dengan ID ${id} tidak ditemukan`,
+      data: null,
+    };
+  }
+
+  const reshapedData = {
+    id: qc_produk.id,
+    tanggalTemuan: qc_produk.tanggal_temuan ? qc_produk.tanggal_temuan.toLocaleDateString() : null,
+    tanggalSelesai: qc_produk.tanggal_selesai ? qc_produk.tanggal_selesai.toLocaleDateString() : null,
+    idOutlet: qc_produk.daftar_produk.id, // Assuming 'daftar_produk' has 'id' as outlet ID
+    namaOutlet: qc_produk.daftar_produk.nama, // Assuming 'daftar_produk' has 'nama' as outlet name
+    idVarian: qc_produk.daftar_produk.id, // Assuming 'daftar_produk' has 'id' as variant ID
+    kodeProduk: qc_produk.daftar_produk.kode,
+    namaProduk: qc_produk.daftar_produk.nama,
+    kategoriProduk: qc_produk.daftar_produk.kategori,
+    ukuranProduk: qc_produk.daftar_produk.ukuran,
+    jumlah: qc_produk.jumlah,
+    tindakan: qc_produk.tindakan,
+    status: qc_produk.status,
+    catatan: qc_produk.catatan,
+    idPenggunaQc: qc_produk.user.id,
+    namaPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.nama : null,
+    rolePenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.role : null,
+    kontakPenggunaQc: qc_produk.user.karyawan ? qc_produk.user.karyawan.kontak : null,
+  };
+
+  return {
+    success: true,
+    message: `Data QC produk dengan ID ${id} berhasil diperoleh`,
+    data: reshapedData,
+  };
 };
 const insertQcProdukRepo = async (newprodukData) => {
   

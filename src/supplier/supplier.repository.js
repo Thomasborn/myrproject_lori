@@ -1,6 +1,6 @@
 
 const prisma = require("../db");
-const findsupplier = async (searchCriteria, page = 1, itemsPerPage = 10) => {
+const findsupplier = async (q, page = 1, itemsPerPage = 10) => {
   // Calculate pagination offset
   const offset = (page - 1) * itemsPerPage;
 
@@ -8,7 +8,7 @@ const findsupplier = async (searchCriteria, page = 1, itemsPerPage = 10) => {
   const suppliers = await prisma.supplier.findMany({
     where: {
       nama: {
-        contains: searchCriteria // Assuming you meant to use 'contains' for partial matching
+        contains: q // Assuming you meant to use 'contains' for partial matching
       }
     },
     skip: offset,
@@ -20,7 +20,7 @@ const findsupplier = async (searchCriteria, page = 1, itemsPerPage = 10) => {
   const totalSuppliers = await prisma.supplier.count({
     where: {
       nama: {
-        contains: searchCriteria // Assuming you meant to use 'contains' for partial matching
+        contains: q // Assuming you meant to use 'contains' for partial matching
       }
     },
   });

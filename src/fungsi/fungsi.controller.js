@@ -55,7 +55,7 @@ router.post("/", upload.none(), async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating fungsi:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/:id", upload.none(),async (req, res) => {
@@ -69,7 +69,7 @@ router.post("/", upload.none(), async (req, res) => {
     res.send({data:fungsi, message: "fungsi updated successfully" });
 } catch (error) {
     console.error('Error updating fungsi:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -83,7 +83,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "fungsi deleted successfully" });
   } catch (error) {
     console.error('Error deleting fungsi:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

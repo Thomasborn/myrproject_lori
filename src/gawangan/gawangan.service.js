@@ -1,7 +1,7 @@
 const prisma = require("../db");
 const { findGawangan,findDetailGawangan,findDetailGawanganById, findGawanganById, insertGawanganRepo, insertDetailGawanganRepo, updateDetailGawanganRepo,updateGawanganRepo, deletegawanganByIdRepo,deleteDetailGawanganByIdRepo,deleteGawanganByIdRepo } = require("./gawangan.repository");
-const getGawangan = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
-  const gawangan = await findGawangan(searchCriteria, page, itemsPerPage);
+const getGawangan = async (q, page = 1, itemsPerPage = 10) => {
+  const gawangan = await findGawangan(q, page, itemsPerPage);
 
   return gawangan;
 };

@@ -104,7 +104,7 @@ const permissionsCache = new NodeCache();
       }
     } catch (error) {
       console.error('Error checking user permissions:', error);
-      res.status(500).json({ success: false, message: 'Internal Server Error' });
+      res.status(500).json({ success: false, message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   
 

@@ -23,6 +23,7 @@ model user {
   role        role     @relation(fields: [role_id], references: [id])
   deleted_at DateTime?
   produksi  produksi[]
+  restok_bahan  restok_bahan[]
   qc_produksi  qc_produksi[]
   qc_produk qc_produk[]
   qc_bahan  qc_bahan[]
@@ -30,6 +31,8 @@ model user {
   bahan_stok_opnam  bahan_stok_opnam[]
   produk_stok_opnam produk_stok_opnam[]
   penjualan penjualan[]
+  distribusi distribusi[]
+  review       produksi[]   @relation("ProduksiReviewer")
   
 }
 model karyawan {
@@ -45,13 +48,16 @@ model karyawan {
   posisi        String?
   status        String?
   bank          String?
+  outlet_id     Int?
   akun_bank     String ?
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now())
   deleted_at    DateTime?
+ // Single outlet where the employee belongs
+  currentOutlet outlet?   @relation("EmployeeCurrentOutlet", fields: [outlet_id], references: [id])
 
-  outlets       outlet[] // This will create a back relation for karyawan to outlets
-
+  // Multiple outlets the employee is associated with
+  otherOutlets  outlet[]  @relation("OutletPic")
   users         user[]
 }
 
@@ -144,6 +150,9 @@ model detail_model_produk {
   bahan_produk      bahan_produk[]
   daftar_produk      daftar_produk[]
   produksi          produksi[]
+  produk_outlet produk_outlet[]
+  detail_penjualan detail_penjualan[]
+  distribusi distribusi[]
 }
 
 model bahan_produk {
@@ -166,6 +175,7 @@ model daftar_bahan {
   satuan  String
   harga   Float?
   foto    String? 
+  kategori    String? 
   deskripsi String? 
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
@@ -182,10 +192,15 @@ model daftar_bahan {
 model restok_bahan {
   id              Int      @id @default(autoincrement())
   tanggal_pesan   DateTime
-  tanggal_terima  DateTime
+  tanggal_estimasi DateTime@default(now())
+  tanggal_terima  DateTime?
   harga_satuan    Float
   jumlah          Float
+  catatan         String?
+  status         String?
   daftar_bahan_id Int      // Foreign key to the daftar_bahan model
+  user_id         Int  @default(1)    // Foreign key to the daftar_bahan model
+  user            user @relation(fields: [user_id], references: [id])
   daftar_bahan    daftar_bahan @relation(fields: [daftar_bahan_id], references: [id])
   supplier_id     Int      // Foreign key to the supplier model
   supplier        supplier   @relation(fields: [supplier_id], references: [id])
@@ -218,7 +233,8 @@ model stok_bahan {
 }
 model produksi {
   id                  Int       @id @default(autoincrement())
-  produksi            String
+  status            String?
+  catatan            String?
   tanggal_mulai       DateTime  @default(now())
   tanggal_selesai     DateTime? 
   jumlah              Int
@@ -229,7 +245,9 @@ model produksi {
   created_at          DateTime  @default(now())
   updated_at          DateTime  @default(now())
   deleted_at          DateTime?
-  qc_produksi  qc_produksi[]
+  id_reviewer         Int?
+  reviewer            user?              @relation("ProduksiReviewer", fields: [id_reviewer], references: [id])
+
 }
 
 model qc_produksi {
@@ -241,7 +259,7 @@ model qc_produksi {
   user_id   Int
   jumlah_rusak   Int
   jumlah_aman    Int
-  produksi  produksi @relation(fields: [produksi_id], references: [id])
+  // produksi  produksi @relation(fields: [produksi_id], references: [id])
   produksi_id Int
   created_at          DateTime  @default(now())
   updated_at          DateTime  @default(now())
@@ -252,6 +270,7 @@ model qc_produksi {
 model daftar_produk {
   id                  Int       @id @default(autoincrement())
   sku                 String
+  jumlah              Int?
   detail_model_produk   detail_model_produk @relation(fields: [detail_model_produk_id], references: [id])
   detail_model_produk_id Int
   created_at          DateTime  @default(now())
@@ -262,8 +281,8 @@ model daftar_produk {
   detail_gawangan detail_gawangan[]
   kustom kustom[]
   produk_stok_opnam produk_stok_opnam[]
-  detail_penjualan  detail_penjualan[]
   detail_diskon detail_diskon[]
+ 
 }
 
 
@@ -294,6 +313,8 @@ model detail_bahan_perbaikan {
 }
 model qc_produk {
   id                Int           @id @default(autoincrement())
+  tanggal_temuan        DateTime      @default(now())
+  tanggal_selesai       DateTime?
   daftar_produk     daftar_produk @relation(fields: [daftar_produk_id], references: [id])
   user              user          @relation(fields: [user_id], references: [id])
   tindakan          String
@@ -355,7 +376,7 @@ model stok_produk {
   lemari_id         Int
 }
 model outlet {
-  id                Int       @id @default(autoincrement())
+  id                Int          @id @default(autoincrement())
   nama              String
   no_telp           String
   kode              String?
@@ -364,16 +385,55 @@ model outlet {
   status            String?
   deskripsi         String?
   alamat            String
-  idPic             Int?      // Nullable for now
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @default(now())
+  idPic             Int?         // Nullable for now
+
+  // Timestamps
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
   deleted_at        DateTime?
 
+  // Relations
+  distribusiDari    distribusi[] @relation("DistribusiDariOutlet")
+  distribusiTujuan  distribusi[] @relation("DistribusiTujuanOutlet")
   lemari            lemari[]
   gawangan          gawangan[]
-  karyawan          karyawan? @relation(fields: [idPic], references: [id])
+  produk_outlet     produk_outlet[]
+ // Employees working at this outlet
+  karyawan         karyawan[]   @relation("EmployeeCurrentOutlet") // One-to-many relation for current employees
+  
+  pic               karyawan?    @relation("OutletPic", fields: [idPic], references: [id]) // One-to-one relation for PIC
 }
 
+model produk_outlet {
+  id                Int       @id @default(autoincrement())
+  produk_id         Int
+  outlet_id         Int
+  jumlah            Int
+
+  produk      detail_model_produk    @relation(fields: [produk_id], references: [id])
+  outlet            outlet          @relation(fields: [outlet_id], references: [id])
+
+  @@unique([produk_id, outlet_id])
+    // Indexes for optimization
+  @@index([outlet_id])
+}
+
+ model distribusi {
+  id                Int             @id @default(autoincrement())
+  produk_id         Int
+  idPic             Int
+  asal_outlet_id    Int
+  tujuan_outlet_id  Int
+  jumlah            Int
+  catatan           String
+  tanggal        DateTime            @default(now())
+  created_at        DateTime        @default(now())
+
+  Pic      user    @relation(fields: [idPic], references: [id])
+  daftarProduk      detail_model_produk    @relation(fields: [produk_id], references: [id])
+  asalOutlet        outlet          @relation("DistribusiDariOutlet", fields: [asal_outlet_id], references: [id])
+  tujuanOutlet      outlet          @relation("DistribusiTujuanOutlet", fields: [tujuan_outlet_id], references: [id])
+}
 
 model detail_gawangan {
   id                Int            @id @default(autoincrement())
@@ -453,13 +513,13 @@ model detail_penjualan {
   id                Int             @id @default(autoincrement())
   jenis_transaksi   String
   penjualan         penjualan       @relation(fields: [penjualan_id], references: [id])
-  daftar_produk     daftar_produk   @relation(fields: [daftar_produk_id], references: [id])
+  produk            detail_model_produk   @relation(fields: [produk_id], references: [id])
   created_at        DateTime        @default(now())
   updated_at        DateTime        @default(now())
   deleted_at        DateTime?
 
   penjualan_id      Int
-  daftar_produk_id  Int
+  produk_id         Int             @default(1)
 }
 
 model penjualan {
@@ -468,7 +528,7 @@ model penjualan {
   metode_pembayaran String
   waktu             DateTime
   user              user              @relation(fields: [user_id], references: [id])
-  detail_diskon     detail_diskon[]
+  // detail_diskon     detail_diskon[]
   created_at        DateTime          @default(now())
   updated_at        DateTime          @default(now())
   deleted_at        DateTime?
@@ -481,7 +541,7 @@ model detail_diskon {
   id                Int             @id @default(autoincrement())
   diskon            diskon          @relation(fields: [diskon_id], references: [id])
   daftar_produk     daftar_produk?  @relation(fields: [daftar_produk_id], references: [id])
-  penjualan         penjualan?      @relation(fields: [penjualan_id], references: [id])
+  // penjualan         penjualan?      @relation(fields: [penjualan_id], references: [id])
   created_at        DateTime        @default(now())
   updated_at        DateTime        @default(now())
   deleted_at        DateTime?

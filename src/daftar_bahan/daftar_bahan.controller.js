@@ -16,17 +16,17 @@ const {
 const router = express.Router();
 router.get("/", async (req, res) => {
   try {
-    const { kategori, page = 1, itemsPerPage = 10 } = req.query;
+    const { q,kategori, page = 1, itemsPerPage = 10 } = req.query;
 
     // Fetch materials with category and pagination parameters
-    const daftar_bahan = await getBahan(kategori, parseInt(page), parseInt(itemsPerPage));
+    const daftar_bahan = await getBahan(q,kategori, parseInt(page), parseInt(itemsPerPage));
 
     res.send(daftar_bahan);
   } catch (error) {
     console.error("Error fetching materials:", error);
     res.status(500).send({
       success: false,
-      message: "Internal Server Error",
+      message: "Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi",
       data: error,
     });
   }
@@ -47,9 +47,7 @@ router.post("/", imageSingleUpload, async (req, res) => {
     try {
     
         const newBahanData = req.body;
-        if (!req.file) {
-          return res.status(400).json({ error: 'No file uploaded' });
-        }
+    
         const file = req.file;
 
         const daftar_bahan = await insertBahan(newBahanData,file);
@@ -61,7 +59,7 @@ router.post("/", imageSingleUpload, async (req, res) => {
     );
     } catch (error) {
       console.error('Error creating Bahan:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.put("/:id", imageSingleUpload,async (req, res) => {
@@ -76,7 +74,7 @@ router.post("/", imageSingleUpload, async (req, res) => {
     res.send(daftar_bahan);
 } catch (error) {
     console.error('Error updating daftar_bahan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -90,7 +88,7 @@ router.delete("/:id", async (req, res) => {
     res.send(bahan);
   } catch (error) {
     console.error('Error deleting daftar_bahan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

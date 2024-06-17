@@ -13,7 +13,8 @@ const {
 
 const router = express.Router();
 router.get("/",async (req,res) => {
-    const qc_produk =  await getQcProduk();
+  const query= req.query;
+    const qc_produk =  await getQcProduk(query);
     res.send(qc_produk);
  });
 
@@ -36,14 +37,10 @@ router.post("/", upload.none(), async (req, res) => {
     
   
      
-      res.send({
-        
-        data:qc_produk,
-        message:"Pengecekan Produk berhasil ditambah success"
-      });
+      res.send(qc_produk);
     } catch (error) {
       console.error('Error creating produk:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/:id", upload.none(),async (req, res) => {
@@ -57,7 +54,7 @@ router.post("/", upload.none(), async (req, res) => {
     res.send({data:qc_produk, message: "qc_produk updated successfully" });
 } catch (error) {
     console.error('Error updating qc_produk:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.put("/:id", upload.none(), async (req, res) => {
@@ -91,7 +88,7 @@ router.put("/:id", upload.none(), async (req, res) => {
         res.send({ message: "qc_produk updated successfully", updatedQcProduk });
     } catch (error) {
         console.error('Error updating qc_produk:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
 });
 router.delete("/:id", async (req, res) => {
@@ -105,7 +102,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "qc_produk deleted successfully" });
   } catch (error) {
     console.error('Error deleting qc_produk:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

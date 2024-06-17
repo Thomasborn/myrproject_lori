@@ -17,20 +17,19 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     // Extract query parameters for search and pagination
-    const { searchCriteria, page = 1, itemsPerPage = 10 } = req.query;
+    const { q, page = 1, itemsPerPage = 10 } = req.query;
 
-    // Parse searchCriteria if provided
-    const parsedSearchCriteria = searchCriteria ? JSON.parse(searchCriteria) : {};
+  
 
     // Fetch gawangan data based on provided search criteria, page, and itemsPerPage
-    const gawangan = await getGawangan(parsedSearchCriteria, parseInt(page), parseInt(itemsPerPage));
+    const gawangan = await getGawangan(q, parseInt(page), parseInt(itemsPerPage));
 
     // Send the response
     res.send(gawangan);
   } catch (error) {
     // Handle errors
     console.error("Error fetching gawangan:", error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 
@@ -78,7 +77,7 @@ router.get("/detail-gawangan/:id", async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating gawangan:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
 
@@ -93,7 +92,7 @@ router.patch("/detail-gawangan/:id", upload.none(),async (req, res) => {
   res.send({data:detailGawangan, message: "gawangan updated successfully" });
 } catch (error) {
   console.error('Error updating gawangan:', error);
-  res.status(500).json({ error: 'Internal Server Error' });
+  res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }});
 
 router.delete("/detail-gawangan/:id", async (req, res) => {
@@ -107,7 +106,7 @@ router.delete("/detail-gawangan/:id", async (req, res) => {
     res.json({ message: "detail gawangan deleted successfully" });
   } catch (error) {
     console.error('Error deleting gawangan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 router.post("/", upload.none(), async (req, res) => {
@@ -124,7 +123,7 @@ router.post("/", upload.none(), async (req, res) => {
       ;
     } catch (error) {
       console.error('Error creating gawangan:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
 router.put("/:id", upload.none(),async (req, res) => {
@@ -138,7 +137,7 @@ router.put("/:id", upload.none(),async (req, res) => {
     res.send(gawangan);
 } catch (error) {
     console.error('Error updating gawangan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -155,7 +154,7 @@ router.delete("/:id", async (req, res) => {
     res.send(gawangan);
   } catch (error) {
     console.error('Error deleting gawangan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

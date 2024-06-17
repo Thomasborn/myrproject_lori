@@ -44,7 +44,7 @@ router.post("/", upload.none(), async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating stokProduk:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/:id", upload.none(),async (req, res) => {
@@ -58,7 +58,7 @@ router.post("/", upload.none(), async (req, res) => {
     res.send({data:stokProduk, message: "stokProduk updated successfully" });
 } catch (error) {
     console.error('Error updating stokProduk:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.put("/:id", upload.none(), async (req, res) => {
@@ -92,7 +92,7 @@ router.put("/:id", upload.none(), async (req, res) => {
         res.send({ message: "stokProduk updated successfully", updatedStokProduk });
     } catch (error) {
         console.error('Error updating stokProduk:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
 });
 router.delete("/:id", async (req, res) => {
@@ -106,7 +106,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "stokProduk deleted successfully" });
   } catch (error) {
     console.error('Error deleting stokProduk:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

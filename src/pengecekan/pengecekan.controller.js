@@ -45,7 +45,7 @@ router.post("/", upload.none(), async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating produk:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/:id", upload.none(),async (req, res) => {
@@ -59,7 +59,7 @@ router.post("/", upload.none(), async (req, res) => {
     res.send({data:pengecekan, message: "pengecekan updated successfully" });
 } catch (error) {
     console.error('Error updating pengecekan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.put("/:id", upload.none(), async (req, res) => {
@@ -93,7 +93,7 @@ router.put("/:id", upload.none(), async (req, res) => {
         res.send({ message: "pengecekan updated successfully", updatedProduk });
     } catch (error) {
         console.error('Error updating pengecekan:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
 });
 router.delete("/:id", async (req, res) => {
@@ -107,7 +107,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "pengecekan deleted successfully" });
   } catch (error) {
     console.error('Error deleting pengecekan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

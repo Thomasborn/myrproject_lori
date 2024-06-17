@@ -1,45 +1,60 @@
 
 const prisma = require("../db");
-const findGawangan = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
-  // Calculate pagination offset
-  const offset = (page - 1) * itemsPerPage;
+const findGawangan = async (q, page = 1, itemsPerPage = 10) => {
+  try {
+    // Calculate pagination offset
+    const offset = (page - 1) * itemsPerPage;
 
-  // Fetch gawangan data based on search criteria and pagination parameters
-  const gawanganData = await prisma.gawangan.findMany({
-    where: searchCriteria,
-    include: {
-      outlet: true,
-      // detailGawangan: true,
-    },
-    skip: offset,
-    take: itemsPerPage,
-  });
+    // Construct search criteria
+    const whereClause = q ? {
+      OR: [
+        { kode: { contains: q, mode: 'insensitive' } },
+        { deskripsi: { contains: q, mode: 'insensitive' } },
+      ]
+    } : {};
 
-  // Fetch total count of gawangan data based on search criteria
-  const totalGawangan = await prisma.gawangan.count({
-    where: searchCriteria,
-  });
+    // Fetch gawangan data based on search criteria and pagination parameters
+    const gawanganData = await prisma.gawangan.findMany({
+      where: whereClause,
+      include: {
+        outlet: true,
+        // detailGawangan: true,
+      },
+      skip: offset,
+      take: itemsPerPage,
+    });
 
-  // Reshape the fetched data
-  const reshapedData = gawanganData.map(gawangan => ({
-    id: gawangan.id,
-    idOutlet: gawangan.outlet_id,
-    kode: gawangan.kode,
-    deskripsi: gawangan.deskripsi ?? null, // Or any other value based on your logic
-  }));
+    // Fetch total count of gawangan data based on search criteria
+    const totalGawangan = await prisma.gawangan.count({
+      where: whereClause,
+    });
 
-  return {
-    success: true,
-    message: "Data gawangan berhasil diperoleh",
-    dataTitle: "Gawangan",
-    itemsPerPage: itemsPerPage,
-    totalPages: Math.ceil(totalGawangan / itemsPerPage),
-    totalData: totalGawangan,
-    page: page,
-    data: reshapedData
-  };
+    // Reshape the fetched data
+    const reshapedData = gawanganData.map(gawangan => ({
+      id: gawangan.id,
+      idOutlet: gawangan.outlet_id,
+      kode: gawangan.kode,
+      deskripsi: gawangan.deskripsi ?? null, // Or any other value based on your logic
+    }));
+
+    return {
+      success: true,
+      message: "Data gawangan berhasil diperoleh",
+      dataTitle: "Gawangan",
+      itemsPerPage: itemsPerPage,
+      totalPages: Math.ceil(totalGawangan / itemsPerPage),
+      totalData: totalGawangan,
+      page: page,
+      data: reshapedData,
+      search: q || {} // Ensure search criteria is always returned, even if empty
+    };
   
+  } catch (error) {
+    console.error("Error fetching gawangan:", error);
+    throw new Error("Error fetching gawangan");
+  }
 };
+
 
 const findGawanganById = async (id) => {
   const gawangan = await prisma.gawangan.findUnique({

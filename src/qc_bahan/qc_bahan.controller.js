@@ -12,10 +12,26 @@ const {
 } = require("./qc_bahan.service");
 
 const router = express.Router();
-router.get("/",async (req,res) => {
-    const qc_bahan =  await getQcBahan();
+// Route to get QC Bahan data
+router.get("/", async (req, res) => {
+  try {
+    const queryParams = {
+      bulanTemuan: req.query.bulanTemuan,
+      tahunTemuan: req.query.tahunTemuan,
+      bulanSelesai: req.query.bulanSelesai,
+      tahunSelesai: req.query.tahunSelesai,
+      status: req.query.status,
+      itemsPerPage: parseInt(req.query.itemsPerPage) || 10,
+      page: parseInt(req.query.page) || 1,
+    };
+    
+    const qc_bahan = await getQcBahan(queryParams);
     res.send(qc_bahan);
- });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: "Error fetching QC Bahan data" });
+  }
+});
 
 router.get("/:id", async (req, res) => {
     try {
@@ -36,14 +52,10 @@ router.post("/", upload.none(), async (req, res) => {
     
   
      
-      res.send({
-        
-        data:qc_bahan,
-        message:`Bahan dengan id ${daftar_bahan_id} telah berhasil dicek`
-      });
+      res.send(qc_bahan);
     } catch (error) {
       console.error('Error creating produk:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/:id", upload.none(),async (req, res) => {
@@ -54,58 +66,25 @@ router.post("/", upload.none(), async (req, res) => {
           // Check if the qc_bahan exists before attempting to update it
         const qc_bahan = await updatedQcBahan(parseInt(id),updatedQcBahanData)
     
-    res.send({data:qc_bahan, message: "qc_bahan updated successfully" });
+    res.send(qc_bahan);
 } catch (error) {
     console.error('Error updating qc_bahan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
-router.put("/:id", upload.none(), async (req, res) => {
-    const { id } = req.params;
-    const updatedQcBahanData = req.body;
-    
-    try {
-        // Check if the qc_bahan exists before attempting to update it
-        const existingProduk = await prisma.qc_bahan.findUnique({
-            where: { id: parseInt(id) },
-        });
-        
-        if (!existingProduk) {
-            return res.status(404).json({ error: "qc_bahan not found" });
-        }
-        
-        // Validate and update the qc_bahan data
-        const updatedQcBahan = await prisma.qc_bahan.update({
-            where: { id: parseInt(id) },
-            data: {
-                // Update the field only if it's provided in the request body
-                kode_produk: updatedQcBahanData.kode_produk || existingProduk.kode_produk,
-                sku: updatedQcBahanData.sku || existingProduk.sku,
-                nama_produk: updatedQcBahanData.nama_produk || existingProduk.nama_produk,
-                stok: updatedQcBahanData.stok !== undefined ? parseInt(updatedQcBahanData.stok) : existingProduk.stok,
-                harga_jual: updatedQcBahanData.harga_jual !== undefined ? parseFloat(updatedQcBahanData.harga_jual) : existingProduk.harga_jual,
-                // ... other fields
-            },
-        });
-        
-        res.send({ message: "qc_bahan updated successfully", updatedQcBahan });
-    } catch (error) {
-        console.error('Error updating qc_bahan:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
 
     
     // If the qc_bahan exists, delete it
-   await deleteQcBahanById(parseInt(id))
+  const qc_bahan =  await deleteQcBahanById(parseInt(id))
 
-    res.json({ message: "qc_bahan deleted successfully" });
+    res.json(qc_bahan);
   } catch (error) {
     console.error('Error deleting qc_bahan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

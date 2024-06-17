@@ -1,14 +1,14 @@
 const prisma = require("../db");
-const { findkaryawan, findkaryawanById, insertkaryawanRepo, updatekaryawanRepo, deletekaryawanByIdRepo } = require("./karyawan.repository");
+const { findkaryawan, findkaryawanById, insertKaryawanRepo, updatekaryawanRepo, deleteKaryawanByIdRepo } = require("./karyawan.repository");
 
-const getkaryawans = async (searchCriteria, page, itemsPerPage) => {
-  const karyawan = await findkaryawan(searchCriteria, page, itemsPerPage);
+const getKaryawan = async (q, posisi, status, gender, sortBy,  page, itemsPerPage) => {
+  const karyawan = await findkaryawan(q, posisi, status, gender, sortBy,  page, itemsPerPage);
 
   return karyawan;
 };
 
 
-const getkaryawanById = async (id) => {
+const getKaryawanById = async (id) => {
   const karyawan = await findkaryawanById(id);
 
   if (!karyawan) {
@@ -17,26 +17,26 @@ const getkaryawanById = async (id) => {
 
   return karyawan;
 };
-const deletekaryawanById = async (id) => {
+const deleteKaryawanById = async (id) => {
   await getkaryawanById(id);
-  const karyawan = await deletekaryawanByIdRepo(id)
+  const karyawan = await deleteKaryawanByIdRepo(id)
  
   return karyawan;
 };
-const insertkaryawan = async (newkaryawanData)=>{
-  const karyawan = await insertkaryawanRepo(newkaryawanData);
+const insertKaryawan = async (newkaryawanData)=>{
+  const karyawan = await insertKaryawanRepo(newkaryawanData);
 
   return karyawan;
   
 };
-const updatedkaryawan = async (id,updatedkaryawanData)=>{
-  const karyawan = await updatekaryawanRepo(id,updatedkaryawanData);
+const updatedKaryawan = async (id,updatedKaryawanData)=>{
+  const karyawan = await updatekaryawanRepo(id,updatedKaryawanData);
   return karyawan;
 };
 module.exports = {
-  getkaryawans,
-  getkaryawanById,
-  insertkaryawan,
-  updatedkaryawan,
-  deletekaryawanById
+  getKaryawan,
+  getKaryawanById,
+  insertKaryawan,
+  updatedKaryawan,
+  deleteKaryawanById
 };

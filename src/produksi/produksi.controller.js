@@ -12,10 +12,23 @@ const {
 } = require("./produksi.service");
 
 const router = express.Router();
-router.get("/",async (req,res) => {
-    const produksi =  await getProduksi();
+router.get("/", async (req, res) => {
+  const { q, bulanMulai, tahunMulai, bulanSelesai, tahunSelesai, status, itemsPerPage, page } = req.query;
+
+  const query = {q, bulanMulai, tahunMulai, bulanSelesai, tahunSelesai, status, itemsPerPage, page
+  };
+
+  try {
+    const produksi = await getProduksi(query);
     res.send(produksi);
- });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: "Terjadi kesalahan dalam mendapatkan data produksi",
+      error: error.message,
+    });
+  }
+});
 
 router.get("/:id", async (req, res) => {
     try {
@@ -36,14 +49,10 @@ router.post("/", upload.none(), async (req, res) => {
     
   
      
-      res.send({
-        
-        data:produksi,
-        message:"Produksi berhasil ditambah success"
-      });
+      res.send(produksi);
     } catch (error) {
       console.error('Error creating produksi:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/:id", upload.none(),async (req, res) => {
@@ -54,10 +63,10 @@ router.post("/", upload.none(), async (req, res) => {
           // Check if the produksi exists before attempting to update it
         const produksi = await updatedProduksi(parseInt(id),updatedProdukData)
     
-    res.send({data:produksi, message: "produksi updated successfully" });
+    res.send(produksi);
 } catch (error) {
     console.error('Error updating produksi:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 // router.put("/:id", upload.none(), async (req, res) => {
@@ -91,7 +100,7 @@ router.post("/", upload.none(), async (req, res) => {
 //         res.send({ message: "produksi updated successfully", updatedProduk });
 //     } catch (error) {
 //         console.error('Error updating produksi:', error);
-//         res.status(500).json({ error: 'Internal Server Error' });
+//         res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 //     }
 // });
 router.delete("/:id", async (req, res) => {
@@ -100,12 +109,12 @@ router.delete("/:id", async (req, res) => {
 
     
     // If the produksi exists, delete it
-   await deleteproduksiById(parseInt(id))
+   const produksi = await deleteproduksiById(parseInt(id))
 
-    res.json({ message: "produksi deleted successfully" });
+    res.send(produksi);
   } catch (error) {
     console.error('Error deleting produksi:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

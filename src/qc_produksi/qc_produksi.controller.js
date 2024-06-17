@@ -44,7 +44,7 @@ router.post("/", upload.none(), async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating produk:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/:id", upload.none(),async (req, res) => {
@@ -58,7 +58,7 @@ router.post("/", upload.none(), async (req, res) => {
     res.send({data:qc_produksi, message: "qc_produksi updated successfully" });
 } catch (error) {
     console.error('Error updating qc_produksi:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.put("/:id", upload.none(), async (req, res) => {
@@ -92,7 +92,7 @@ router.put("/:id", upload.none(), async (req, res) => {
         res.send({ message: "qc_produksi updated successfully", updatedQcProduksi });
     } catch (error) {
         console.error('Error updating qc_produksi:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
 });
 router.delete("/:id", async (req, res) => {
@@ -106,7 +106,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "qc_produksi deleted successfully" });
   } catch (error) {
     console.error('Error deleting qc_produksi:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

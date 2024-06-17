@@ -63,7 +63,7 @@ router.get("/detail-penjualan/:id", async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating penjualan:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
 
@@ -78,7 +78,7 @@ router.patch("/detail-penjualan/:id", upload.none(),async (req, res) => {
   res.send({data:detailpenjualan, message: "penjualan updated successfully" });
 } catch (error) {
   console.error('Error updating penjualan:', error);
-  res.status(500).json({ error: 'Internal Server Error' });
+  res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }});
 
 router.delete("/detail-penjualan/:id", async (req, res) => {
@@ -92,7 +92,7 @@ router.delete("/detail-penjualan/:id", async (req, res) => {
     res.json({ message: "detail penjualan deleted successfully" });
   } catch (error) {
     console.error('Error deleting penjualan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 router.post("/", upload.none(), async (req, res) => {
@@ -111,7 +111,7 @@ router.post("/", upload.none(), async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating penjualan:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
 router.patch("/:id", upload.none(),async (req, res) => {
@@ -125,7 +125,7 @@ router.patch("/:id", upload.none(),async (req, res) => {
     res.send({data:penjualan, message: "penjualan updated successfully" });
 } catch (error) {
     console.error('Error updating penjualan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -139,7 +139,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "penjualan deleted successfully" });
   } catch (error) {
     console.error('Error deleting penjualan:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

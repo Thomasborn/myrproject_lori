@@ -4,8 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-const findBahan = async (kategori, page = 1, itemsPerPage = 10) => {
-   try {
+const findBahan = async (q, kategori, page = 1, itemsPerPage = 10) => {
+  try {
     // Ensure page is at least 1
     page = Math.max(page, 1);
 
@@ -13,19 +13,29 @@ const findBahan = async (kategori, page = 1, itemsPerPage = 10) => {
     const offset = (page - 1) * itemsPerPage;
 
     // Construct search criteria including category filtering if provided
-    const searchCriteria = kategori ? { kategori } : {};
+    const whereClause = {};
+    if (q) {
+      whereClause.OR = [
+        { nama: { contains: q, mode: 'insensitive' } },
+        { kode: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+    if (kategori) {
+      whereClause.kategori = kategori;
+    }
 
     // Fetch count of daftar_bahan data based on search criteria
     const totalMaterials = await prisma.daftar_bahan.count({
-      where: searchCriteria,
+      where: whereClause,
     });
 
     // Fetch daftar_bahan data based on search criteria and pagination parameters
     const daftarBahan = await prisma.daftar_bahan.findMany({
-      where: searchCriteria,
+      where: whereClause,
       skip: offset,
       take: itemsPerPage,
     });
+
     // Fetch restok_bahan data related to each daftar_bahan
     const daftarBahanWithRestok = await Promise.all(daftarBahan.map(async (bahan) => {
       // Find restok_bahan entries related to this daftar_bahan
@@ -51,12 +61,12 @@ const findBahan = async (kategori, page = 1, itemsPerPage = 10) => {
         id: bahan.id,
         kode: bahan.kode,
         nama: bahan.nama,
-        kategori: bahan.kategori ?? null,
+        kategori: bahan.kategori??null, // Assuming 'kategori' is a scalar field directly accessible
         stok: totalStok,
         satuan: bahan.satuan,
         harga: averageHarga,
-        // deskripsi: bahan.deskripsi ?? null,
-        foto: bahan.foto ?? null
+        deskripsi: bahan.deskripsi ?? null,
+        foto: bahan.foto ?? null,
       };      
     }));
 
@@ -69,13 +79,14 @@ const findBahan = async (kategori, page = 1, itemsPerPage = 10) => {
       totalData: totalMaterials,
       page: page,
       data: daftarBahanWithRestok,
-      search: searchCriteria
+      search: { q, kategori },
     };
     
   } catch (error) {
     throw new Error("Error fetching materials");
   }
 };
+
 
 
 const findBahanById = async (id) => {
@@ -117,7 +128,7 @@ const findBahanById = async (id) => {
     kode: daftarBahan.kode,
     nama: daftarBahan.nama,
     kategori: daftarBahan.kategori ?? null,
-    stok: totalStok,
+    stok: daftarBahan.stok,
     satuan: daftarBahan.satuan,
     harga: averageHarga,
     deskripsi: daftarBahan.deskripsi ?? null,

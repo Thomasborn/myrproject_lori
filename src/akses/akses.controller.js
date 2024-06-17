@@ -55,7 +55,7 @@ router.post("/", upload.none(), async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating akses:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.patch("/:id", upload.none(),async (req, res) => {
@@ -69,7 +69,7 @@ router.post("/", upload.none(), async (req, res) => {
     res.send({data:akses, message: "akses updated successfully" });
 } catch (error) {
     console.error('Error updating akses:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -83,7 +83,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "akses deleted successfully" });
   } catch (error) {
     console.error('Error deleting akses:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

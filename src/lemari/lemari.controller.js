@@ -15,10 +15,10 @@ const { findLemariById } = require("./lemari.repository");
 const router = express.Router();
 router.get("/", async (req, res) => {
     // Extract pagination parameters from the request query
-    const { kode,page = 1, itemsPerPage = 10 } = req.query;
+    const {q,page = 1, itemsPerPage = 10 } = req.query;
 
     // Call getLemari function with pagination parameters
-    const lemari = await getLemari(kode,parseInt(page), parseInt(itemsPerPage));
+    const lemari = await getLemari(q,parseInt(page), parseInt(itemsPerPage));
 
     // Send the response
     res.send(lemari);
@@ -52,7 +52,7 @@ router.post("/", upload.none(), async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating Lemari:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
   router.put("/:id", upload.none(),async (req, res) => {
@@ -74,7 +74,7 @@ router.post("/", upload.none(), async (req, res) => {
         });
 } catch (error) {
     console.error('Error updating lemari:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });router.delete("/:id", async (req, res) => {
   const { id } = req.params;
@@ -95,7 +95,7 @@ router.post("/", upload.none(), async (req, res) => {
   } catch (error) {
     // Handle errors
     console.error('Error deleting lemari:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

@@ -1,52 +1,65 @@
 
 const prisma = require("../db");
-const findkaryawan = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
+const findkaryawan = async (q, posisi, status, gender, sortBy, page = 1, itemsPerPage = 10) => {
   try {
-    // Calculate pagination offset
-    const offset = (page - 1) * itemsPerPage;
+      // Calculate pagination offset
+      const offset = (page - 1) * itemsPerPage;
 
-    // Fetch karyawan data based on search criteria and pagination parameters
-    const karyawan = await prisma.karyawan.findMany({
-      where: searchCriteria,
-      skip: offset,
-      take: itemsPerPage,
-    });
+      // Prepare search criteria based on input parameters
+      const where = {
+          AND: [
+              q ? { nama: { contains: q, mode: 'insensitive' } } : {},
+              posisi ? { posisi: { equals: posisi } } : {},
+              status ? { status: { equals: status } } : {},
+              gender ? { jenis_kelamin: { equals: gender } } : {}
+          ]
+      };
 
-    // Fetch total count of karyawan data based on search criteria
-    const totalKaryawan = await prisma.karyawan.count({ where: searchCriteria });
+      // Fetch karyawan data based on search criteria and pagination parameters
+      const karyawan = await prisma.karyawan.findMany({
+          where,
+          orderBy: sortBy ? { [sortBy]: 'asc' } : undefined,
+          skip: offset,
+          take: itemsPerPage,
+      });
 
-    // Reshape the karyawan data
-    const reshapedKaryawan = karyawan.map(employee => ({
-      id: employee.id,
-      nama: employee.nama,
-      gender: employee.jenis_kelamin, // Assuming 'jenis_kelamin' maps to 'gender' in your model
-      nik: employee.nik,
-      alamat: employee.alamat,
-      noHp: employee.kontak, // Assuming 'kontak' maps to 'noHp' in your model
-      email: employee.email,
-      foto: employee.foto,
-      posisi: employee.posisi,
-      status: employee.status,
-      bank: employee.bank,
-      norek: employee.no_rekening, // Assuming 'no_rekening' maps to 'norek' in your model
-      akunBank: employee.akun_bank, // Assuming 'akun_bank' maps to 'akunBank' in your model
-    }));
-    return {
-      success: true,
-      message: "Data Karyawan berhasil diperoleh",
-      dataTitle: "Karyawan",
-      itemsPerPage:  itemsPerPage,
-      totalPages: Math.ceil(totalKaryawan / itemsPerPage),
-      totalData: totalKaryawan,
-      page: page,
-      data: reshapedKaryawan
-    };
-    
+      // Fetch total count of karyawan data based on search criteria
+      const totalKaryawan = await prisma.karyawan.count({ where });
+
+      // Reshape the karyawan data
+      const reshapedKaryawan = karyawan.map(employee => ({
+          id: employee.id,
+          nama: employee.nama,
+          gender: employee.jenis_kelamin,
+          nik: employee.nik,
+          alamat: employee.alamat,
+          noHp: employee.kontak,
+          email: employee.email,
+          foto: employee.foto,
+          posisi: employee.posisi,
+          status: employee.status,
+          bank: employee.bank,
+          norek: employee.no_rekening,
+          akunBank: employee.akun_bank,
+      }));
+
+      return {
+          success: true,
+          message: "Data Karyawan berhasil diperoleh",
+          dataTitle: "Karyawan",
+          itemsPerPage: itemsPerPage,
+          totalPages: Math.ceil(totalKaryawan / itemsPerPage),
+          totalData: totalKaryawan,
+          page: page,
+          data: reshapedKaryawan
+      };
   } catch (error) {
-    console.error("Error fetching karyawan:", error);
-    throw new Error("Gagal mengambil data karyawan");
+      console.error("Error fetching karyawan:", error);
+      throw new Error("Gagal mengambil data karyawan");
   }
 };
+
+
 const findkaryawanById = async (id) => {
   try {
     const karyawan = await prisma.karyawan.findUnique({
@@ -92,7 +105,7 @@ const findkaryawanById = async (id) => {
   }
 };
 
-const insertkaryawanRepo = async (newkaryawanData) => {
+const insertKaryawanRepo = async (newkaryawanData) => {
   try {
     const {
       id,
@@ -155,7 +168,7 @@ const insertkaryawanRepo = async (newkaryawanData) => {
       return {
         success: false,
         message: 'Gagal menambahkan karyawan.',
-        error: error.message || "Internal server error"
+        error: error.message || "Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi"
       };
     }
   }
@@ -219,11 +232,11 @@ const updatekaryawanRepo = async (karyawanId, updatedData) => {
     return {
       success: false,
       message: 'Gagal memperbarui karyawan.',
-      error: error.message || 'Internal server error',
+      error: error.message || 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi',
     };
   }
 };
-const deletekaryawanByIdRepo = async (id) => {
+const deleteKaryawanByIdRepo = async (id) => {
   try {
     // Check if the karyawan exists
     const karyawan = await prisma.karyawan.findUnique({
@@ -233,7 +246,8 @@ const deletekaryawanByIdRepo = async (id) => {
     if (!karyawan) {
       return {
         success: false,
-        message: 'Karyawan dengan ID: '+id+' tidak ditemukan.',
+        status: 404, // Not Found
+        message: 'Karyawan dengan ID: ' + id + ' tidak ditemukan.',
       };
     }
 
@@ -247,23 +261,27 @@ const deletekaryawanByIdRepo = async (id) => {
       where: { id },
     });
 
+    // No content to return, send status 204 with success message
     return {
       success: true,
+      status: 204, // No Content
       message: `Karyawan dengan ID ${id} berhasil dihapus.`,
     };
   } catch (error) {
     return {
       success: false,
+      status: 500, // Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi
       message: 'Gagal menghapus karyawan.',
-      error: error.message || 'Internal server error',
+      error: error.message || 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi',
     };
   }
 };
 
+
 module.exports={
   findkaryawan,
   findkaryawanById,
-  insertkaryawanRepo,
+  insertKaryawanRepo,
   updatekaryawanRepo,
-  deletekaryawanByIdRepo
+  deleteKaryawanByIdRepo
 }

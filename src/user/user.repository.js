@@ -1,16 +1,13 @@
 
 const prisma = require("../db");
-const finduser = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
+const finduser = async (q, role, status, page = 1, itemsPerPage = 10) => {
   try {
-    const { nama, email, role, status } = searchCriteria;
-
     // Build the search filter object
     const where = {
       AND: [
-        nama ? { karyawan: { nama: { contains: nama, mode: 'insensitive' } } } : {},
-        email ? { email: { contains: email, mode: 'insensitive' } } : {},
+        q ? { username: { contains: q, mode: 'insensitive' } } : {},
         role ? { role: { nama: { contains: role, mode: 'insensitive' } } } : {},
-        status !== undefined ? { deleted_at: status === 'Inactive' ? { not: null } : null } : {}
+        status ? { status: status } : {} // Directly filter by user status
       ]
     };
 
@@ -42,11 +39,11 @@ const finduser = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
     const transformedUsers = users.map(user => ({
       id: user.id,
       idKaryawan: user.karyawan_id, // Assuming karyawan_id maps to idKaryawan
-      nama: user.karyawan?.nama || '', // Assuming karyawan has a nama field
+      nama: user.username || '', // Assuming username contains the desired name
       role: user.role?.nama || '', // Assuming role has a nama field
       email: user.email,
       username: `owner.${user.email.split('@')[0]}`, // Assuming username follows this pattern
-      status: user.deleted_at ? "Inactive" : "Aktif", // Assuming status is "Aktif" if not deleted
+      status: user.status, // Directly use user status
       abilityRules: user.role?.hak_akses.map(hak_akses => ({
         fungsi: hak_akses.fungsi?.nama || '', // Ensure fungsi is not undefined
         akses: hak_akses.akses?.nama || '', // Ensure akses is not undefined
@@ -66,7 +63,7 @@ const finduser = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
       page: page,
       data: transformedUsers
     };
-    
+
   } catch (error) {
     console.error('Error finding users:', error);
     return {
@@ -75,6 +72,8 @@ const finduser = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
     };
   }
 };
+
+
 const finduserById = async (id) => {
   try {
     const user = await prisma.user.findUnique({
@@ -137,7 +136,7 @@ const finduserById = async (id) => {
 };
 
 
-const insertuserRepo = async (newUserData) => {
+const insertUserRepo = async (newUserData) => {
   try {
     const { idKaryawan, nama, email, username, status } = newUserData;
     const roleName = newUserData.role;
@@ -189,7 +188,7 @@ const insertuserRepo = async (newUserData) => {
 
 const updateuserRepo = async (userId, updatedUserData) => {
   try {
-    const {  role, email, username, status } = updatedUserData;
+    const { role, email, username, status } = updatedUserData;
     const roleName = role;
 
     // Temukan ID peran berdasarkan nama peran
@@ -203,13 +202,26 @@ const updateuserRepo = async (userId, updatedUserData) => {
       throw new Error(`Peran dengan nama ${roleName} tidak ditemukan`);
     }
 
+    // Periksa apakah email sudah ada dan bukan milik pengguna yang sedang diperbarui
+    const existingUserWithEmail = await prisma.user.findFirst({
+      where: {
+        email: email,
+        id: {
+          not: parseInt(userId),
+        },
+      },
+    });
+
+    if (existingUserWithEmail) {
+      throw new Error(`Email ${email} sudah digunakan oleh pengguna lain`);
+    }
+
     // Perbarui pengguna
     const updatedUser = await prisma.user.update({
       where: {
         id: parseInt(userId),
       },
       data: {
-        // nama,
         role: {
           connect: {
             id: roleRecord.id
@@ -235,7 +247,8 @@ const updateuserRepo = async (userId, updatedUserData) => {
   }
 };
 
-const deleteuserByIdRepo = async (id) => {
+
+const deleteUserByIdRepo = async (id) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: parseInt(id) },
@@ -265,7 +278,7 @@ const deleteuserByIdRepo = async (id) => {
 module.exports={
   finduser,
   finduserById,
-  insertuserRepo,
+  insertUserRepo,
   updateuserRepo,
-  deleteuserByIdRepo
+  deleteUserByIdRepo
 }

@@ -73,7 +73,7 @@ const prisma = require("../src/db");
     } catch (error) {
       // Handle any potential errors, e.g., fetching permissions failed
       console.error('Error checking user permissions:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
+      res.status(500).json({ message: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
 
   // // next();

@@ -61,7 +61,7 @@ router.get("/detail-diskon/:id", async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating diskon:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
 
@@ -76,7 +76,7 @@ router.patch("/detail-diskon/:id", upload.none(),async (req, res) => {
   res.send({data:detaildiskon, message: "diskon updated successfully" });
 } catch (error) {
   console.error('Error updating diskon:', error);
-  res.status(500).json({ error: 'Internal Server Error' });
+  res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }});
 
 router.delete("/detail-diskon/:id", async (req, res) => {
@@ -90,7 +90,7 @@ router.delete("/detail-diskon/:id", async (req, res) => {
     res.json({ message: "detail diskon deleted successfully" });
   } catch (error) {
     console.error('Error deleting diskon:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 router.post("/", upload.none(), async (req, res) => {
@@ -109,7 +109,7 @@ router.post("/", upload.none(), async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating diskon:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
     }
   });
 router.patch("/:id", upload.none(),async (req, res) => {
@@ -123,7 +123,7 @@ router.patch("/:id", upload.none(),async (req, res) => {
     res.send({data:diskon, message: "diskon updated successfully" });
 } catch (error) {
     console.error('Error updating diskon:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
 }
 });
 router.delete("/:id", async (req, res) => {
@@ -137,7 +137,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "diskon deleted successfully" });
   } catch (error) {
     console.error('Error deleting diskon:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
   }
 });
 

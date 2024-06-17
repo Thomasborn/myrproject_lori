@@ -1,14 +1,14 @@
 const prisma = require("../db");
-const { finduser, finduserById, insertuserRepo, updateuserRepo, deleteuserByIdRepo } = require("./user.repository");
+const { finduser, finduserById, insertUserRepo, updateuserRepo, deleteUserByIdRepo } = require("./user.repository");
 
-const getusers = async (searchCriteria, page, itemsPerPage) => {
-  const user = await finduser(searchCriteria, page, itemsPerPage);
+const getUsers = async (q, role, status, page, itemsPerPage) => {
+  const user = await finduser(q, role, status,page, itemsPerPage);
 
   return user;
 };
 
 
-const getuserById = async (id) => {
+const getUserById = async (id) => {
   const user = await finduserById(id);
 
   if (!user) {
@@ -17,24 +17,24 @@ const getuserById = async (id) => {
 
   return user;
 };
-const deleteuserById = async (id) => {
- const pengguna = await deleteuserByIdRepo(id)
+const deleteUserById = async (id) => {
+ const pengguna = await deleteUserByIdRepo(id)
  return pengguna;
 };
-const insertuser = async (newuserData)=>{
-  const user = await insertuserRepo(newuserData);
+const insertUser = async (newuserData)=>{
+  const user = await insertUserRepo(newuserData);
 
   return user;
   
 };
-const updateduser = async (id,updateduserData)=>{
-  const user = await updateuserRepo(id,updateduserData);
+const updatedUser = async (id,updatedUserData)=>{
+  const user = await updateuserRepo(id,updatedUserData);
   return user;
 };
 module.exports = {
-  getusers,
-  getuserById,
-  insertuser,
-  updateduser,
-  deleteuserById
+  getUsers,
+  getUserById,
+  insertUser,
+  updatedUser,
+  deleteUserById
 };

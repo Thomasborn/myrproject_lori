@@ -1,20 +1,187 @@
 
 const prisma = require("../db");
+const findPenjualan = async (bulanTransaksi, tahunTransaksi, metodePembayaran, idOutlet, itemsPerPage = 10, page = 1) => {
+  try {
+    // Calculate offset for pagination
+    const offset = (page - 1) * itemsPerPage;
 
-const findPenjualan = async () => {
-  const penjualan = await prisma.penjualan.findMany();
+    // Prepare base where condition
+    let whereCondition = {};
 
-  return penjualan;
+    // Check and add conditions based on provided parameters
+    if (bulanTransaksi !== undefined && bulanTransaksi !== null) {
+      whereCondition = {
+        ...whereCondition,
+        waktu: {
+          gte: new Date(`${tahunTransaksi}-${bulanTransaksi}-01`),
+          lt: new Date(`${tahunTransaksi}-${bulanTransaksi}-31`)
+        }
+      };
+    }
+
+    if (tahunTransaksi !== undefined && tahunTransaksi !== null) {
+      whereCondition = {
+        ...whereCondition,
+        waktu: {
+          ...(whereCondition.waktu || {}),
+          gte: new Date(`${tahunTransaksi}-${bulanTransaksi || '01'}-01`),
+          lt: new Date(`${tahunTransaksi}-${bulanTransaksi || '12'}-31`)
+        }
+      };
+    }
+
+    if (metodePembayaran !== undefined && metodePembayaran !== null) {
+      whereCondition = {
+        ...whereCondition,
+        metode_pembayaran: metodePembayaran
+      };
+    }
+
+    if (idOutlet !== undefined && idOutlet !== null) {
+      whereCondition = {
+        ...whereCondition,
+        user: { outlet_id: idOutlet }
+      };
+    }
+
+    // Fetch penjualan with filtering and pagination
+    const penjualan = await prisma.penjualan.findMany({
+      where: Object.keys(whereCondition).length > 0 ? whereCondition : undefined, // Only include where condition if it's not empty
+      skip: offset,
+      take: itemsPerPage,
+      include: {
+        detail_penjualan: {
+          include: {
+            produk:true
+          }
+        },
+        user: {
+          include:{
+            karyawan:{
+              include:{
+                outlets:true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Fetch total count for pagination metadata
+    const totalData = await prisma.penjualan.count({
+      where: Object.keys(whereCondition).length > 0 ? whereCondition : undefined // Only include where condition if it's not empty
+    });
+
+    const totalPages = Math.ceil(totalData / itemsPerPage);
+
+    // Reshape the response
+    const reshapedResponse = {
+      success: true,
+      message: "Data penjualan berhasil diperoleh",
+      dataTitle: "Penjualan",
+      itemsPerPage: itemsPerPage,
+      totalPages: totalPages,
+      totalData: totalData,
+      page: page,
+      data: penjualan.map(p => ({
+        id: p.id,
+        tanggal: p.waktu.toLocaleDateString('id-ID'),
+        waktu: p.waktu.toLocaleTimeString('id-ID'),
+        metodePembayaran: p.metode_pembayaran,
+        idPenggunaSales: p.user_id,
+        namaPenggunaSales: p.user.nama,
+        totalTransaksi: p.total,
+        idOutlet: idOutlet,
+        namaOutlet: p.user.karyawan.outlets.nama,
+        jumlahItem: p.detail_penjualan.length
+      }))
+    };
+
+    return reshapedResponse;
+
+  } catch (error) {
+    // Handle errors here
+    console.error("Error fetching data:", error);
+    return {
+      success: false,
+      message: "Gagal memperoleh data penjualan"
+    };
+  }
 };
 
+
 const findPenjualanById = async (id) => {
-  const penjualan = await prisma.penjualan.findUnique({
-    where: {
-      id,
-    },
-  });
-  
-  return penjualan;
+  try {
+    // Fetch the penjualan record by its ID, including related detail_penjualan and daftar_produk
+    const penjualan = await prisma.penjualan.findUnique({
+      where: { id: id },
+      include: {
+        detail_penjualan: {
+          include: {
+            produk: {
+              include:{
+                model_produk:{
+                  include:{
+                    kategori:true
+                  }
+                }
+              }
+            }
+          }
+        },
+        user: {
+          include:{
+            karyawan:{
+              include:{
+                outlets:true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!penjualan) {
+      return {
+        success: false,
+        message: `Data penjualan dengan ID ${id} tidak ditemukan`,
+      };
+    }
+
+    // Reshape the response
+    const reshapedResponse = {
+      success: true,
+      message: "Data penjualan berhasil diperoleh",
+      data: {
+        id: penjualan.id,
+        tanggal: penjualan.waktu.toLocaleDateString('id-ID'),
+        waktu: penjualan.waktu.toLocaleTimeString('id-ID'),
+        metodePembayaran: penjualan.metode_pembayaran,
+        transaksi: penjualan.detail_penjualan.map(t => ({
+          idVarian: t.produk.id,
+          kodeProduk: t.produk.model_produk.nama,
+          namaProduk: t.produk.model_produk.nama,
+          kategoriProduk: t.produk.model_produk.kategori.nama,
+          ukuranProduk: t.produk.ukuran,
+          hargaProduk: t.produk.harga_jual,
+          jumlah: t.jumlah
+        })),
+        idPenggunaSales: penjualan.user_id,
+        namaPenggunaSales: penjualan.user.karyawan.nama,
+        totalTransaksi: penjualan.total,
+        idOutlet: penjualan.user.karyawan.outlets.id, // Adjust field based on your schema
+        namaOutlet: penjualan.user.karyawan.outlets ? penjualan.user.karyawan.outlets.nama : null, // Adjust field based on your schema
+        jumlahItem: penjualan.detail_penjualan.length
+      }
+    };
+
+    return reshapedResponse;
+  } catch (error) {
+    console.error("Error fetching penjualan detail: ", error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
 };
 
 const findDetailPenjualan = async () => {
@@ -22,15 +189,62 @@ const findDetailPenjualan = async () => {
 
   return detailPenjualan;
 };
-
 const findDetailPenjualanById = async (id) => {
-  const detailPenjualan = await prisma.detail_penjualan.findUnique({
-    where: {
-      id,
-    },
-  });
-  
-  return detailPenjualan;
+  try {
+    // Fetch the penjualan record by its ID, including related detail_penjualan and daftar_produk
+    const penjualan = await prisma.penjualan.findUnique({
+      where: { id: id },
+      include: {
+        detail_penjualan: {
+          include: {
+            produk: true
+          }
+        },
+        user: true // Assuming there is a user relation
+      }
+    });
+
+    if (!penjualan) {
+      return {
+        success: false,
+        message: `Data penjualan dengan ID ${id} tidak ditemukan`,
+      };
+    }
+
+    // Reshape the response
+    const reshapedResponse = {
+      success: true,
+      message: "Data penjualan berhasil diperoleh",
+      data: {
+        id: penjualan.id,
+        tanggal: penjualan.waktu.toLocaleDateString('id-ID'),
+        waktu: penjualan.waktu.toLocaleTimeString('id-ID'),
+        metodePembayaran: penjualan.metode_pembayaran,
+        transaksi: penjualan.detail_penjualan.map(t => ({
+          idVarian: t.produk.id,
+          kodeProduk: t.produk.kode_produk,
+          namaProduk: t.produk.nama_produk,
+          kategoriProduk: t.produk.kategori_produk,
+          ukuranProduk: t.produk.ukuran_produk,
+          hargaProduk: t.produk.harga_produk,
+          jumlah: t.jumlah
+        })),
+        idPenggunaSales: penjualan.user_id,
+        namaPenggunaSales: penjualan.user.nama,
+        totalTransaksi: penjualan.total,
+        idOutlet: penjualan.user.outlet_id, // Adjust field based on your schema
+        namaOutlet: penjualan.user.outlet ? penjualan.user.outlet.nama : null, // Adjust field based on your schema
+        jumlahItem: penjualan.detail_penjualan.length
+      }
+    };
+
+    return reshapedResponse;
+  } catch (error) {
+    console.error("Error fetching penjualan detail: ", error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
 };
 const insertPenjualanRepo = async (newPenjualanData) => {
   

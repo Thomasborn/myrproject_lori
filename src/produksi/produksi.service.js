@@ -1,8 +1,8 @@
 const prisma = require("../db");
 
 const { findProduk, findProduksiById, insertProduksiRepo, updateProduksiRepo, deleteproduksiByIdRepo } = require("./produksi.repository");
-const getProduksi = async () => {
-  const produksi = await findProduk();
+const getProduksi = async (query) => {
+  const produksi = await findProduk(query);
 
   return produksi;
 };
@@ -18,9 +18,8 @@ const getProduksiById = async (id) => {
   return produksi;
 };
 const deleteproduksiById = async (id) => {
-  await getProduksiById(id);
-  await deleteproduksiByIdRepo(id)
- 
+const produksi=  await deleteproduksiByIdRepo(id)
+ return produksi;
 };
 const insertProduksi = async (newprodukData)=>{
   const produksi = await insertProduksiRepo(newprodukData);
