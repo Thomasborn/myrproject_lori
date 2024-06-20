@@ -1,7 +1,24 @@
 
 const prisma = require("../db");
+const bcrypt = require("bcrypt");
+
+// Function to hash the user's password
+const hashPassword= async (password)=> {
+  try {
+    // const saltRounds = bcrypt.genSalt(10); // The number of salt rounds (adjust as needed)
+    const saltRounds = (10); // The number of salt rounds (adjust as needed)
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    return hashedPassword;
+  } catch (error) {
+    throw error;
+  }
+}
 const finduser = async (q, role, status, page = 1, itemsPerPage = 10) => {
   try {
+    // Validate page and itemsPerPage
+    page = Math.max(1, parseInt(page, 10)); // Ensure page is at least 1
+    itemsPerPage = Math.max(1, parseInt(itemsPerPage, 10)); // Ensure itemsPerPage is at least 1
+
     // Build the search filter object
     const where = {
       AND: [
@@ -10,6 +27,8 @@ const finduser = async (q, role, status, page = 1, itemsPerPage = 10) => {
         status ? { status: status } : {} // Directly filter by user status
       ]
     };
+
+    console.log('Filter object:', JSON.stringify(where, null, 2)); // Log filter object
 
     // Calculate pagination values
     const skip = (page - 1) * itemsPerPage;
@@ -35,6 +54,8 @@ const finduser = async (q, role, status, page = 1, itemsPerPage = 10) => {
       take,
     });
 
+    console.log('Fetched users:', JSON.stringify(users, null, 2)); // Log fetched users
+
     // Transform the user data to match the desired format
     const transformedUsers = users.map(user => ({
       id: user.id,
@@ -50,8 +71,12 @@ const finduser = async (q, role, status, page = 1, itemsPerPage = 10) => {
       })) || [], // Map hak_akses to the desired format
     }));
 
+    console.log('Transformed users:', JSON.stringify(transformedUsers, null, 2)); // Log transformed users
+
     // Fetch total count for pagination
     const totalCount = await prisma.user.count({ where });
+
+    console.log('Total user count:', totalCount); // Log total count
 
     return {
       success: true,
@@ -140,6 +165,7 @@ const insertUserRepo = async (newUserData) => {
   try {
     const { idKaryawan, nama, email, username, status } = newUserData;
     const roleName = newUserData.role;
+    const hashedPassword = await hashPassword(newUserData.password);
 
     // Temukan ID peran berdasarkan nama peran
     const role = await prisma.role.findFirst({
@@ -155,8 +181,9 @@ const insertUserRepo = async (newUserData) => {
     // Buat pengguna baru
     const user = await prisma.user.create({
       data: {
+        username,
         email,
-        password: newUserData.password, // Pastikan untuk meng-hash kata sandi
+        password: hashedPassword, // Pastikan untuk meng-hash kata sandi
         karyawan_id: idKaryawan,
         role_id: role.id,
       },

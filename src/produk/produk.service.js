@@ -1,41 +1,46 @@
 const prisma = require("../db");
-const { findProduk, findProdukById, insertProdukRepo, updateProdukRepo, deleteprodukByIdRepo } = require("./produk_item.repository");
+const { findDaftarProduk, findDaftarProdukById, insertDaftarProdukRepo, updateDaftarProdukRepo, deleteDaftarProdukByIdRepo } = require("./produk.repository");
+const getDaftarProduk = async (q,kategori,outletId,  page, itemsPerPage) => {
+    // Fetch all data based on search criteria
+    const allDaftarProduk = await findDaftarProduk(q,outletId, kategori,page,itemsPerPage);
+    // Return paginated data with pagination details
+    return allDaftarProduk;
 
-const getProduks = async () => {
-  const produk_Item = await findProduk();
-
-  return produk_Item;
 };
 
+const getDaftarProdukById = async (id) => {
+  const produk = await findDaftarProdukById(id);
 
-const getProdukById = async (id) => {
-  const produk_Item = await findProdukById(id);
-
-  if (!produk_Item) {
-    throw Error("produk not found");
+  if (!produk) {
+    return res.status(404).send({
+      success: false,
+      message: "Produk ID:"+id+"tidak ditemukan",
+      data: null
+    });
   }
 
-  return produk_Item;
+  return produk;
 };
-const deleteprodukById = async (id) => {
-  await getProdukById(id);
-  await deleteprodukByIdRepo(id)
+const deleteDaftarProdukById = async (id) => {
+  // await getDaftarProdukById(id);
+  const produk= await deleteDaftarProdukByIdRepo(id)
  
+  return produk;
 };
-const insertProduk = async (newprodukData)=>{
-  const produk_Item = await insertProdukRepo(newprodukData);
+const insertDaftarProduk = async (data)=>{
+  const produk = await insertDaftarProdukRepo(data);
 
-  return produk_Item;
+  return produk;
   
 };
-const updatedProduk = async (id,updatedProdukData)=>{
-  const produk_Item = await updateProdukRepo(id,updatedProdukData);
-  return produk_Item;
+const updatedDaftarProduk = async (id,updatedDaftarProdukData)=>{
+  const produk = await updateDaftarProdukRepo(id,updatedDaftarProdukData);
+  return produk;
 };
 module.exports = {
-  getProduks,
-  getProdukById,
-  insertProduk,
-  updatedProduk,
-  deleteprodukById
+  getDaftarProduk,
+  getDaftarProdukById,
+  insertDaftarProduk,
+  updatedDaftarProduk,
+  deleteDaftarProdukById
 };

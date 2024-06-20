@@ -119,36 +119,69 @@ const findQcProdukById = async (id) => {
     message: `Data QC produk dengan ID ${id} berhasil diperoleh`,
     data: reshapedData,
   };
-};
-const insertQcProdukRepo = async (newprodukData) => {
-  
+};const insertQcProdukRepo = async (newprodukData) => {
   try {
-    const { daftar_produk_id, user_id, tindakan, jumlah, catatan, status } = newprodukData;
+    // Parse the date in DD/MM/YYYY format
+    const parsedTanggalTemuan = new Date(
+      newprodukData.tanggalTemuan.split('/').reverse().join('-')
+    );
 
-    // Insert data into qc_produk
-    const createdQcProduk = await prisma.qc_produk.create({
-      data: {
-        daftar_produk: {
-          connect: {
-            id: parseInt(daftar_produk_id),
-          },
-        },
-        user: {
-          connect: {
-            id: parseInt(user_id),
-          },
-        },
-        tindakan,
-        jumlah: parseInt(jumlah),
-        catatan,
-        status,
+    // Check if the produk_id exists in the produk_outlet table
+    const produkExists = await prisma.produk_outlet.findUnique({
+      where: {
+        id: newprodukData.idVarian,
       },
     });
 
-    return createdQcProduk;
+    if (!produkExists) {
+      return {
+        success: false,
+        message: 'Produk ID tidak ditemukan',
+      };
+    }
+
+    const newQcProduk = await prisma.qc_produk.create({
+      data: {
+        tanggal_temuan: parsedTanggalTemuan,
+        tindakan: newprodukData.tindakan,
+        jumlah: parseInt(newprodukData.jumlah),
+        catatan: newprodukData.catatan || '', // Optional field, provide a default if not present
+        status: newprodukData.status,
+        produk_id: newprodukData.idVarian, // Assuming idVarian corresponds to produk_id
+        user_id: newprodukData.idPenggunaQc,
+      },
+    });
+
+    const response = {
+      success: true,
+      message: `Data QC produk berhasil ditambahkan dengan ID ${newQcProduk.id}`,
+      data: {
+        id: newQcProduk.id,
+        tanggalSelesai: newQcProduk.tanggal_selesai,
+        tanggalTemuan: newprodukData.tanggalTemuan,
+        idVarian: newprodukData.idVarian,
+        kodeProduk: newprodukData.kodeProduk,
+        namaProduk: newprodukData.namaProduk,
+        kategoriProduk: newprodukData.kategoriProduk,
+        ukuranProduk: newprodukData.ukuranProduk,
+        jumlah: newprodukData.jumlah,
+        tindakan: newprodukData.tindakan,
+        status: newprodukData.status,
+        idPenggunaQc: newprodukData.idPenggunaQc,
+        namaPenggunaQc: newprodukData.namaPenggunaQc,
+        idOutlet: newprodukData.idOutlet,
+        namaOutlet: newprodukData.namaOutlet,
+      },
+    };
+
+    return response;
   } catch (error) {
-    console.error('Error inserting qc_produk:', error);
-    throw error
+    console.error(error);
+    return {
+      success: false,
+      message: 'Terjadi kesalahan saat menambahkan data QC produk',
+      error: error.message,
+    };
   }
 };
 

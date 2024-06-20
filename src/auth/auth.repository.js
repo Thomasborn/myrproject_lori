@@ -1,5 +1,6 @@
 
 const prisma = require("../db");
+const secretSalt     = process.env.Salt;
 const bcrypt = require('bcrypt')
 const userService = require('./auth.service'); // Import the user repository
 async function findByEmailAndPassword(email, password) {
@@ -100,7 +101,7 @@ const getForgetPassword = async (email) => {
 const hashPassword= async (password)=> {
   try {
     // const saltRounds = bcrypt.genSalt(10); // The number of salt rounds (adjust as needed)
-    const saltRounds = (10); // The number of salt rounds (adjust as needed)
+    const saltRounds = (secretSalt); // The number of salt rounds (adjust as needed)
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     return hashedPassword;
   } catch (error) {

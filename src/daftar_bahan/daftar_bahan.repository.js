@@ -64,7 +64,8 @@ const findBahan = async (q, kategori, page = 1, itemsPerPage = 10) => {
         kategori: bahan.kategori??null, // Assuming 'kategori' is a scalar field directly accessible
         stok: totalStok,
         satuan: bahan.satuan,
-        harga: averageHarga,
+        hargaSatuan: averageHarga,
+        harga: bahan.harga??null,
         deskripsi: bahan.deskripsi ?? null,
         foto: bahan.foto ?? null,
       };      
@@ -130,7 +131,8 @@ const findBahanById = async (id) => {
     kategori: daftarBahan.kategori ?? null,
     stok: daftarBahan.stok,
     satuan: daftarBahan.satuan,
-    harga: averageHarga,
+    hargaSatuan: averageHarga,
+    harga: daftarBahan.harga,
     deskripsi: daftarBahan.deskripsi ?? null,
     foto: daftarBahan.foto ?? null,
   };
@@ -144,7 +146,7 @@ const findBahanById = async (id) => {
 const saveFoto = (file) => {
   
   let filename = file.filename ? file.filename : uuidv4() + path.extname(file.originalname);
-  const targetDir = path.join(__dirname, 'public/images/bahan');
+  const targetDir = path.join(__dirname,  '../public/images/bahan');
   let targetPath = path.join(targetDir, filename);
 
   // Ensure the directory exists
@@ -166,33 +168,54 @@ const saveFoto = (file) => {
   const imageUrl = '/public/images/bahan/' + filename;
   return imageUrl;
 };
-
 const insertBahanRepo = async (newBahanData, file) => {
-  const { kode, stok, nama, satuan } = newBahanData;
+  const { kode, stok, nama, satuan, harga, kategori, deskripsi } = newBahanData;
 
-  // Save the file
+  // Simpan file dan dapatkan URL foto
   const fotoUrl = saveFoto(file);
 
-  // Create data object for Prisma
+  // Buat objek data untuk Prisma
   const data = {
-      kode,
-      stok:parseInt(stok),
-      nama,
-      satuan,
-      foto: fotoUrl // assuming 'foto' is the field in your Prisma model for storing the image URL
+    kode,
+    stok: parseFloat(stok), // Menggunakan parseFloat untuk mengkonversi stok menjadi float
+    nama,
+    satuan,
+    harga: harga ? parseFloat(harga) : null, // Menggunakan parseFloat jika harga ada
+    foto: fotoUrl,
+    kategori,
+    deskripsi
   };
 
-  // Insert data into Prisma
-  const insertDaftarBahan = await prisma.daftar_bahan.create({
+  try {
+    // Masukkan data ke dalam Prisma
+    const insertDaftarBahan = await prisma.daftar_bahan.create({
       data: data
-  });
+    });
 
-  return {
+    return {
       success: true,
       message: `Data bahan berhasil ditambahkan dengan ID ${insertDaftarBahan.id}`,
-      data: insertDaftarBahan
-  };
+      data: {
+        id: insertDaftarBahan.id,
+        kode: insertDaftarBahan.kode,
+        nama: insertDaftarBahan.nama,
+        kategori: insertDaftarBahan.kategori,
+        harga: insertDaftarBahan.harga ? insertDaftarBahan.harga.toString() : null,
+        stok: insertDaftarBahan.stok.toString(),
+        satuan: insertDaftarBahan.satuan,
+        deskripsi: insertDaftarBahan.deskripsi,
+        foto: insertDaftarBahan.foto
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: `Gagal menambahkan data bahan: ${error.message}`
+    };
+  }
 };
+
+
 
 
 const deleteFoto = (fotoUrl) => {
@@ -203,9 +226,8 @@ const deleteFoto = (fotoUrl) => {
     fs.unlinkSync(targetPath);
   }
 };
-
 const updateBahanRepo = async (id, updatedBahanData, file) => {
-  const { kode, stok, nama, satuan } = updatedBahanData;
+  const { kode, stok, nama, satuan, harga, kategori, deskripsi } = updatedBahanData;
 
   // Fetch the existing record to check for an existing photo
   const existingBahan = await prisma.daftar_bahan.findUnique({
@@ -234,9 +256,12 @@ const updateBahanRepo = async (id, updatedBahanData, file) => {
   // Create data object for Prisma
   const data = {
     kode,
-    stok: parseInt(stok),
+    stok: parseFloat(stok),
     nama,
     satuan,
+    harga: harga ? parseFloat(harga) : null,
+    kategori,
+    deskripsi
   };
 
   // Add foto to the data object if a new file was provided
@@ -255,9 +280,20 @@ const updateBahanRepo = async (id, updatedBahanData, file) => {
   return {
     success: true,
     message: `Data bahan berhasil diperbarui dengan ID ${updatedDaftarBahan.id}`,
-    data: updatedDaftarBahan,
+    data: {
+      id: updatedDaftarBahan.id,
+      kode: updatedDaftarBahan.kode,
+      nama: updatedDaftarBahan.nama,
+      kategori: updatedDaftarBahan.kategori,
+      harga: updatedDaftarBahan.harga ? updatedDaftarBahan.harga.toString() : null,
+      stok: updatedDaftarBahan.stok.toString(),
+      satuan: updatedDaftarBahan.satuan,
+      deskripsi: updatedDaftarBahan.deskripsi,
+      foto: updatedDaftarBahan.foto
+    }
   };
 };
+
 
 
 // Function to delete a bahan by ID

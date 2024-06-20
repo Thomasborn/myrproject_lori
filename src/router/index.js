@@ -2,7 +2,7 @@ const express = require("express");
 // const { app, prisma } = require("./server"); // Import the Express app and Prisma client
 const router = express.Router();
 const verifyAccess = require("../middleware/access");
-const ProdukController = require("../produk_item/produk_item.controller")
+const ProdukItemController = require("../produk_item/produk_item.controller")
 const ProduksiController = require("../produksi/produksi.controller")
 const PengecekanController = require("../pengecekan/pengecekan.controller")
 // const StokController = require("../stok/stok.controller")
@@ -37,38 +37,53 @@ const StokProdukController = require("../stok_produk/stok_produk.controller")
 const KaryawanController = require("../karyawan/karyawan.controller")
 const AksesController = require("../akses/akses.controller")
 const DistribusiController = require("../distribusi/distribusi.controller")
+const ProdukController = require("../produk/produk.controller")
+const LaporanController = require("../laporan/laporan.controller")
+const DashboardController = require("../dashboard/dashboard.controller")
 
 // router.use("/produk",ProdukController);
 router.use("/kategori",KategoriController);
 router.use("/pembuat",PembuatController);
-router.use("/operasi/produksi",ProduksiController);
 router.use("/pengecekan",PengecekanController);
 router.use("/pengecekan_bahan",PengecekanBahanController);
 router.use("/pemesanan",PemesananBahanController);
-router.use("/master/pemasok",SupplierController);
-router.use("/master/outlet",OutletController);
-router.use("/master/gawangan",GawanganController);
 router.use("/pembelians",PembelianController);
-router.use("/master/pengguna",UserController);
 router.use("/fungsi",FungsiController);
 router.use("/akses",AksesController);
 router.use("/model-produk",ModelProdukController);
 router.use("/kategori-produk",KategoriController);
 router.use("/hak-akses",HakAksesController);
 router.use("/qc-produksi",QcProduksiController);
-router.use("/operasi/qc-produk",QcProdukController);
-router.use("/operasi/qc-bahan",QcBahanController);
-router.use("/master/produk",DaftarProdukController);
 router.use("/kustom",KustomController);
 router.use("/diskon",DiskonController);
-router.use("/operasi/penjualan",PenjualanController);
-router.use("/master/bahan",DaftarBahanController);
-router.use("/operasi/pengadaan-bahan",RestokBahanController);
-router.use("/operasi/distribusi",DistribusiController);
 router.use("/stok-bahan",StokBahanController);
-router.use("/master/rak",LemariController);
 router.use("/bahan-stok-opname",BahanStokOpnameController);
 router.use("/produk-stok-opname",ProdukStokOpnameController);
 router.use("/stok-produk",StokProdukController);
+
+//OPERASI ROUTES
+router.use("/operasi/produksi",ProduksiController);
+router.use("/operasi/qc-produk",QcProdukController);
+router.use("/operasi/qc-bahan",QcBahanController);
+router.use("/operasi/penjualan",PenjualanController);
+router.use("/operasi/pengadaan-bahan",RestokBahanController);
+router.use("/operasi/distribusi",DistribusiController);
+
+//MASTER ROUTES
+router.use("/master/pemasok",SupplierController);
+router.use("/master/outlet",OutletController);
+router.use("/master/gawangan",GawanganController);
+router.use("/master/pengguna",UserController);
+router.use("/master/produk",ProdukController);
+router.use("/master/bahan",DaftarBahanController);
+router.use("/master/rak",LemariController);
 router.use("/master/karyawan",KaryawanController);
+
+//LAPORAN ROUTES
+router.use("/laporan/penjualan",LaporanController);
+
+//DASHBOARD ROUTES
+router.use("/dashboard/",DashboardController);
+
+
 module.exports=router;

@@ -7,16 +7,23 @@ const {
 const findProduk = async (query) => {
   const { q, bulanMulai, tahunMulai, bulanSelesai, tahunSelesai, status, itemsPerPage, page } = query;
 
+  // Construct the start date for the range
+  const startDate = bulanMulai && tahunMulai ? new Date(`${tahunMulai}-${bulanMulai}-01`) : null;
+  // Construct the end date for the range
+  const endDate = bulanSelesai && tahunSelesai ? new Date(`${tahunSelesai}-${bulanSelesai}-01`) : null;
+  if (endDate) endDate.setMonth(endDate.getMonth() + 1); // Move to the next month
+  if (endDate) endDate.setDate(0); // Get the last date of the month
+
   const whereConditions = {
     ...(status && { status }),
-    ...(bulanMulai && tahunMulai && {
+    ...(startDate && {
       tanggal_mulai: {
-        gte: new Date(`${tahunMulai}-${bulanMulai}-01`),
+        gte: startDate,
       },
     }),
-    ...(bulanSelesai && tahunSelesai && {
+    ...(endDate && {
       tanggal_selesai: {
-        lte: new Date(`${tahunSelesai}-${bulanSelesai}-31`),
+        lte: endDate,
       },
     }),
     ...(q && {
@@ -45,15 +52,15 @@ const findProduk = async (query) => {
         },
       },
     },
-    take: parseInt(itemsPerPage),
-    skip: parseInt(itemsPerPage) * (parseInt(page) - 1),
+    take: parseInt(itemsPerPage, 10),
+    skip: parseInt(itemsPerPage, 10) * (parseInt(page, 10) - 1),
   });
 
   const totalData = await prisma.produksi.count({
     where: whereConditions,
   });
 
-  const totalPages = Math.ceil(totalData / parseInt(itemsPerPage));
+  const totalPages = Math.ceil(totalData / parseInt(itemsPerPage, 10));
 
   const reshapedData = produksi.map((item) => ({
     id: item.id,
@@ -70,13 +77,15 @@ const findProduk = async (query) => {
     success: true,
     message: 'Data produksi berhasil diperoleh',
     dataTitle: 'Produksi',
-    itemsPerPage: parseInt(itemsPerPage),
+    itemsPerPage: parseInt(itemsPerPage, 10),
     totalPages,
     totalData,
     page: page.toString(),
     data: reshapedData,
   };
-};const findProduksiById = async (id) => {
+};
+
+const findProduksiById = async (id) => {
   const produksi = await prisma.produksi.findFirst({
     where: { id },
     include: {
@@ -169,11 +178,11 @@ const insertProduksiRepo = async (newProdukData) => {
     },
   });
   
-  const daftar_produk = await getDaftarProdukById(createdProduksi.detail_model_produk.id);
+  // const daftar_produk = await getDaftarProdukById(createdProduksi.detail_model_produk.id);
   const reshapedData = {
     id: createdProduksi.id,
     tanggalMulai: createdProduksi.tanggal_mulai.toLocaleDateString(),
-    idProduk: daftar_produk.id,
+    idProduk: createdProduksi.detail_model_produk.id,
     produk: createdProduksi.detail_model_produk.model_produk.nama,
     ukuran: ukuran || createdProduksi.detail_model_produk.model_produk.ukuran,
     jumlah: createdProduksi.jumlah,

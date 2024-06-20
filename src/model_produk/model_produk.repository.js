@@ -198,7 +198,7 @@ const insertModelProdukRepo = async (newModelProdukData) => {
         kode,
         nama,
         deskripsi,
-        variasi,
+        // variasi,
         // foto:imageUrls,
         kategori: {
           connect: {

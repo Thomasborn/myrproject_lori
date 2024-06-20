@@ -1,41 +1,110 @@
-const prisma = require("../db");
-const { findProduk, findProdukById, insertProdukRepo, updateProdukRepo, deleteprodukByIdRepo } = require("./kategori_produk.repository");
+const { findDashboardStatistikPenjualan,
+   findDashboardPengeluaran,
+   findDashboardKeuntungan,
+   findDashboardKerugian,
+   findDashboardPendapatanPengeluaran,
+   findPeringkatPenjahit,
+   findPeringkatProduk,
+   findPeringkatSales } = require("./dashboard.repository");
 
-const getProduks = async () => {
-  const kategori_produk = await findProduk();
+const getDashboardStatistikPenjualan = async (bulan, tahun) => {
+    if (!bulan || !tahun) {
+        return {
+            success: false,
+            message: "Parameter bulan dan tahun wajib diisi"
+        };
+    }
+    const statistikData = await findDashboardStatistikPenjualan(bulan, tahun);
+    return statistikData;
+};
 
-  return kategori_produk;
+const getDashboardPengeluaran = async (bulan, tahun) => {
+    if (!bulan || !tahun) {
+        return {
+            success: false,
+            message: "Parameter bulan dan tahun wajib diisi"
+        };
+    }
+    const pengeluaranData = await findDashboardPengeluaran(bulan, tahun);
+    return pengeluaranData;
+};
+
+const getDashboardKeuntungan = async (bulan, tahun) => {
+  if (!bulan || !tahun) {
+    return {
+      success: false,
+      message: "Parameter bulan dan tahun wajib diisi",
+    };
+  }
+  const keuntunganData = await findDashboardKeuntungan(bulan, tahun);
+  return keuntunganData;
 };
 
 
-const getProdukById = async (id) => {
-  const kategori_produk = await findProdukById(id);
+const getDashboardKerugian = async (bulan, tahun) => {
+  if (!bulan || !tahun) {
+    return {
+      success: false,
+      message: "Parameter bulan dan tahun wajib diisi",
+    };
+  }
+  const kerugianData = await findDashboardKerugian(bulan, tahun);
+  return kerugianData;
+};
 
-  if (!kategori_produk) {
-    throw Error("produk not found");
+
+
+const getDashboardPendapatanPengeluaran = async (tahun) => {
+  if (!tahun) {
+    return {
+      success: false,
+      message: "Parameter tahun wajib diisi",
+    };
+  }
+  const data = await findDashboardPendapatanPengeluaran(tahun);
+  return data;
+};
+
+
+
+const getPeringkatPenjahit = async (bulan, tahun, itemsPerPage, page) => {
+  if (!bulan || !tahun || !itemsPerPage || !page) {
+      return {
+          success: false,
+          message: "Parameter bulan, tahun, itemsPerPage, dan page wajib diisi"
+      };
   }
 
-  return kategori_produk;
+  const peringkatData = await findPeringkatPenjahit(bulan, tahun, itemsPerPage, page);
+  return peringkatData;
 };
-const deleteprodukById = async (id) => {
-  await getProdukById(id);
-  await deleteprodukByIdRepo(id)
- 
-};
-const insertProduk = async (newprodukData)=>{
-  const kategori_produk = await insertProdukRepo(newprodukData);
 
-  return kategori_produk;
-  
+const getDashboardPeringkatProduk = async (bulan, tahun, itemsPerPage, page) => {
+  const penjualanData = await findPeringkatProduk(bulan, tahun,itemsPerPage, page);
+return penjualanData;
 };
-const updatedProduk = async (id,updatedProdukData)=>{
-  const kategori_produk = await updateProdukRepo(id,updatedProdukData);
-  return kategori_produk;
+
+const getPeringkatSales = async (bulan, tahun, itemsPerPage, page) => {
+  if (!bulan || !tahun || !itemsPerPage || !page) {
+    return {
+      success: false,
+      message: 'Parameter bulan, tahun, itemsPerPage, dan page wajib diisi',
+    };
+  }
+
+  const peringkatData = await findPeringkatSales(bulan, tahun, itemsPerPage, page);
+  return peringkatData;
 };
+
 module.exports = {
-  getProduks,
-  getProdukById,
-  insertProduk,
-  updatedProduk,
-  deleteprodukById
+    getDashboardStatistikPenjualan,
+    getDashboardPengeluaran,
+    getDashboardKeuntungan,
+    getDashboardKerugian,
+    getDashboardPendapatanPengeluaran,
+    getPeringkatPenjahit,
+    getDashboardPeringkatProduk,
+    getPeringkatSales
+
+
 };

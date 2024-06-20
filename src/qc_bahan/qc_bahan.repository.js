@@ -181,7 +181,7 @@ const insertQcBahanRepo = async (newprodukData) => {
         jumlah,
         catatan,
         status,
-        qc_produk_id: kodeBahan,
+        // qc_produk_id: kodeBahan,
       },
       include: {
         daftar_bahan: true,

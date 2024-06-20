@@ -16,7 +16,8 @@ const {
 
 const router = express.Router();
 router.get("/",async (req,res) => {
-    const penjualan =  await getPenjualan();
+    const query = req.query;
+    const penjualan =  await getPenjualan(query);
     res.send(penjualan);
  });
 
@@ -104,11 +105,7 @@ router.post("/", upload.none(), async (req, res) => {
     
   
      
-      res.send({
-        
-        data:penjualan,
-        message:"penjualan berhasil ditambah success"
-      });
+      res.send(penjualan);
     } catch (error) {
       console.error('Error creating penjualan:', error);
       res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });

@@ -1,65 +1,70 @@
 
 const prisma = require("../db");
-const findPenjualan = async (bulanTransaksi, tahunTransaksi, metodePembayaran, idOutlet, itemsPerPage = 10, page = 1) => {
+const findPenjualan = async (query) => {
   try {
-    // Calculate offset for pagination
+    let { bulanTransaksi, tahunTransaksi, metodePembayaran, idOutlet, q, itemsPerPage = 10, page = 1 } = query;
     const offset = (page - 1) * itemsPerPage;
-
-    // Prepare base where condition
     let whereCondition = {};
 
-    // Check and add conditions based on provided parameters
-    if (bulanTransaksi !== undefined && bulanTransaksi !== null) {
-      whereCondition = {
-        ...whereCondition,
-        waktu: {
-          gte: new Date(`${tahunTransaksi}-${bulanTransaksi}-01`),
-          lt: new Date(`${tahunTransaksi}-${bulanTransaksi}-31`)
-        }
-      };
-    }
+    // Pastikan bulanTransaksi dan tahunTransaksi dalam format yang benar
+    bulanTransaksi = bulanTransaksi ? bulanTransaksi.toString().padStart(2, '0') : null;
+    tahunTransaksi = tahunTransaksi ? tahunTransaksi.toString() : null;
 
     if (tahunTransaksi !== undefined && tahunTransaksi !== null) {
-      whereCondition = {
-        ...whereCondition,
-        waktu: {
-          ...(whereCondition.waktu || {}),
-          gte: new Date(`${tahunTransaksi}-${bulanTransaksi || '01'}-01`),
-          lt: new Date(`${tahunTransaksi}-${bulanTransaksi || '12'}-31`)
-        }
-      };
+      if (bulanTransaksi !== undefined && bulanTransaksi !== null) {
+        const startDate = new Date(`${tahunTransaksi}-${bulanTransaksi}-01`);
+        const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1);
+
+        whereCondition.waktu = {
+          gte: startDate,
+          lt: endDate
+        };
+      } else {
+        const startDate = new Date(`${tahunTransaksi}-01-01`);
+        const endDate = new Date(`${parseInt(tahunTransaksi) + 1}-01-01`);
+
+        whereCondition.waktu = {
+          gte: startDate,
+          lt: endDate
+        };
+      }
     }
 
     if (metodePembayaran !== undefined && metodePembayaran !== null) {
-      whereCondition = {
-        ...whereCondition,
-        metode_pembayaran: metodePembayaran
-      };
+      whereCondition.metode_pembayaran = metodePembayaran;
     }
 
+    // Pastikan idOutlet dalam format yang benar sebelum digunakan dalam pencarian
+    idOutlet = idOutlet ? parseInt(idOutlet) : null;
     if (idOutlet !== undefined && idOutlet !== null) {
-      whereCondition = {
-        ...whereCondition,
-        user: { outlet_id: idOutlet }
+      whereCondition.user = {
+        karyawan: {
+          outlet_id: idOutlet
+        }
       };
     }
 
-    // Fetch penjualan with filtering and pagination
+    if (q !== undefined && q !== null) {
+      whereCondition.OR = [
+        { user: { karyawan: { nama: { contains: q, mode: 'insensitive' } } } }
+      ];
+    }
+
     const penjualan = await prisma.penjualan.findMany({
-      where: Object.keys(whereCondition).length > 0 ? whereCondition : undefined, // Only include where condition if it's not empty
+      where: whereCondition,
       skip: offset,
-      take: itemsPerPage,
+      take: parseInt(itemsPerPage),
       include: {
         detail_penjualan: {
           include: {
-            produk:true
+            produk: true
           }
         },
         user: {
-          include:{
-            karyawan:{
-              include:{
-                outlets:true
+          include: {
+            karyawan: {
+              include: {
+                outlet: true
               }
             }
           }
@@ -67,14 +72,12 @@ const findPenjualan = async (bulanTransaksi, tahunTransaksi, metodePembayaran, i
       }
     });
 
-    // Fetch total count for pagination metadata
     const totalData = await prisma.penjualan.count({
-      where: Object.keys(whereCondition).length > 0 ? whereCondition : undefined // Only include where condition if it's not empty
+      where: whereCondition
     });
 
     const totalPages = Math.ceil(totalData / itemsPerPage);
 
-    // Reshape the response
     const reshapedResponse = {
       success: true,
       message: "Data penjualan berhasil diperoleh",
@@ -85,14 +88,14 @@ const findPenjualan = async (bulanTransaksi, tahunTransaksi, metodePembayaran, i
       page: page,
       data: penjualan.map(p => ({
         id: p.id,
-        tanggal: p.waktu.toLocaleDateString('id-ID'),
+        tanggal: p.waktu.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         waktu: p.waktu.toLocaleTimeString('id-ID'),
         metodePembayaran: p.metode_pembayaran,
         idPenggunaSales: p.user_id,
-        namaPenggunaSales: p.user.nama,
+        namaPenggunaSales: p.user.karyawan.nama,
         totalTransaksi: p.total,
-        idOutlet: idOutlet,
-        namaOutlet: p.user.karyawan.outlets.nama,
+        idOutlet: p.user.karyawan.outlet.id,
+        namaOutlet: p.user.karyawan.outlet.nama,
         jumlahItem: p.detail_penjualan.length
       }))
     };
@@ -100,7 +103,6 @@ const findPenjualan = async (bulanTransaksi, tahunTransaksi, metodePembayaran, i
     return reshapedResponse;
 
   } catch (error) {
-    // Handle errors here
     console.error("Error fetching data:", error);
     return {
       success: false,
@@ -108,6 +110,7 @@ const findPenjualan = async (bulanTransaksi, tahunTransaksi, metodePembayaran, i
     };
   }
 };
+
 
 
 const findPenjualanById = async (id) => {
@@ -133,7 +136,7 @@ const findPenjualanById = async (id) => {
           include:{
             karyawan:{
               include:{
-                outlets:true
+                outlet:true
               }
             }
           }
@@ -169,8 +172,8 @@ const findPenjualanById = async (id) => {
         idPenggunaSales: penjualan.user_id,
         namaPenggunaSales: penjualan.user.karyawan.nama,
         totalTransaksi: penjualan.total,
-        idOutlet: penjualan.user.karyawan.outlets.id, // Adjust field based on your schema
-        namaOutlet: penjualan.user.karyawan.outlets ? penjualan.user.karyawan.outlets.nama : null, // Adjust field based on your schema
+        idOutlet: penjualan.user.karyawan.outlet.id, // Adjust field based on your schema
+        namaOutlet: penjualan.user.karyawan.outlet ? penjualan.user.karyawan.outlet.nama : null, // Adjust field based on your schema
         jumlahItem: penjualan.detail_penjualan.length
       }
     };
@@ -247,20 +250,86 @@ const findDetailPenjualanById = async (id) => {
   }
 };
 const insertPenjualanRepo = async (newPenjualanData) => {
-  
-  const { total, metode_pembayaran, waktu, user_id}= newPenjualanData;
+  try {
+    // Destruktur data yang diperlukan dari newPenjualanData
+    const {
+      idOutlet,
+      idPenggunaSales,
+      jumlahItem,
+      metodePembayaran,
+      namaOutlet,
+      namaPenggunaSales,
+      tanggal,
+      totalTransaksi,
+      transaksi,
+      waktu
+    } = newPenjualanData;
 
-  // Perform the insert operation using Prisma
-  
-  const insertedPenjualan = await prisma.penjualan.create({
-    data: {
-      total,
-      waktu,
-      metode_pembayaran,
-      user_id,
-    },
-  });
-  return insertedPenjualan;
+    // Gabungkan tanggal dan waktu menjadi satu objek DateTime
+    const penjualanDateTime = new Date(`${tanggal.split('/').reverse().join('-')}T${waktu}`);
+
+    // Insert ke tabel penjualan
+    const createdPenjualan = await prisma.penjualan.create({
+      data: {
+        total: totalTransaksi,
+        metode_pembayaran: metodePembayaran,
+        waktu: penjualanDateTime,
+        user_id: idPenggunaSales,
+      },
+    });
+
+    // Insert ke tabel detail_penjualan
+    const detailPenjualanPromises = transaksi.map((item) => {
+      return prisma.detail_penjualan.create({
+        data: {
+          jenis_transaksi: "default_value", // Sesuaikan dengan kebutuhan
+          penjualan_id: createdPenjualan.id,
+          produk_id: item.idVarian,
+        },
+      });
+    });
+
+    // Tunggu semua entri detail_penjualan selesai dibuat
+    await Promise.all(detailPenjualanPromises);
+
+    const response = {
+      success: true,
+      message: `Data penjualan berhasil ditambahkan dengan ID ${createdPenjualan.id}`,
+      data: {
+        id: createdPenjualan.id,
+        tanggal,
+        waktu,
+        metodePembayaran,
+        transaksi: transaksi.map(item => ({
+          idVarian: item.idVarian,
+          kodeProduk: item.kodeProduk,
+          namaProduk: item.namaProduk,
+          kategoriProduk: item.kategoriProduk,
+          ukuranProduk: item.ukuranProduk,
+          hargaProduk: item.hargaProduk,
+          jumlah: item.jumlah
+        })),
+        idPenggunaSales,
+        namaPenggunaSales,
+        totalTransaksi,
+        idOutlet,
+        namaOutlet,
+        jumlahItem
+      }
+    };
+
+    console.log(response);
+    return response;
+  } catch (error) {
+    console.error('Error membuat entri penjualan dan detail_penjualan:', error);
+    return {
+      success: false,
+      message: 'Error membuat entri penjualan dan detail_penjualan',
+      error: error.message
+    };
+  } finally {
+    await prisma.$disconnect();
+  }
 };
 const insertDetailPenjualanRepo = async (daftarDetailPenjualan,penjualan) => {
   

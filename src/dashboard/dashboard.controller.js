@@ -1,78 +1,88 @@
-
 const express = require("express");
-const prisma = require("../db");
-const multer = require("multer");
-const upload = multer();
-const {
-  getDashboard,
-  insertDashboard,
-  updatedDashboard,
-  getDashboardById,
-  deleteDashboardById,
-} = require("./dashboard.service");
+const { getDashboardStatistikPenjualan,
+   getDashboardPengeluaran,
+   getDashboardKeuntungan,
+   getDashboardKerugian,
+   getDashboardPendapatanPengeluaran,
+   getPeringkatPenjahit,
+   getPeringkatSales } = require("./dashboard.service");
 
 const router = express.Router();
-router.get("/",async (req,res) => {
-    const dashboard =  await getDashboard();
-    res.send(dashboard);
- });
 
-router.get("/:id", async (req, res) => {
-    try {
-      const DashboardId = parseInt(req.params.id);
-      const dashboard = await getDashboardById(parseInt(DashboardId));
-  
-      res.send(dashboard);
-    } catch (err) {
-      res.status(400).send(err.message);
-    }
-  });
-router.post("/", upload.none(), async (req, res) => {
-    try {
-    
-        const newDashboardData = req.body;
+router.get("/statistik/penjualan", async (req, res) => {
+    const { bulan, tahun } = req.query;
 
-        const dashboard = await insertDashboard(newDashboardData);
-    
-  
-     
-      res.send({
-        
-        data:dashboard,
-        message:"Dashboard berhasil ditambah success"
-      });
-    } catch (error) {
-      console.error('Error creating Dashboard:', error);
-      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
+    if (!bulan || !tahun) {
+        return res.status(400).send({
+            success: false,
+            message: "Parameter bulan dan tahun wajib diisi"
+        });
     }
-  });
-  router.patch("/:id", upload.none(),async (req, res) => {
-      const { id } = req.params;
-      const updatedDashboardData = req.body;
-     
-      try {
-          // Check if the dashboard exists before attempting to update it
-        const dashboard = await updatedDashboard(parseInt(id),updatedDashboardData)
-    
-    res.send({data:dashboard, message: "dashboard updated successfully" });
-} catch (error) {
-    console.error('Error updating dashboard:', error);
-    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
-}
+
+    const dashboardData = await getDashboardStatistikPenjualan(bulan, tahun);
+    res.send(dashboardData);
 });
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
+
+router.get("/pengeluaran", async (req, res) => {
+    const { bulan, tahun } = req.query;
+
+    if (!bulan || !tahun) {
+        return res.status(400).send({
+            success: false,
+            message: "Parameter bulan dan tahun wajib diisi"
+        });
+    }
+
+    const dashboardData = await getDashboardPengeluaran(bulan, tahun);
+    res.send(dashboardData);
+});
+
+router.get("/keuntungan", async (req, res) => {
+  const { bulan, tahun } = req.query;
+  const keuntunganData = await getDashboardKeuntungan(bulan, tahun);
+  res.send(keuntunganData);
+});
+
+router.get("/kerugian", async (req, res) => {
+  const { bulan, tahun } = req.query;
+  const kerugianData = await getDashboardKerugian(bulan, tahun);
+  res.send(kerugianData);
+});
+
+router.get("/pendapatan-pengeluaran", async (req, res) => {
+  const { tahun } = req.query;
+  const data = await getDashboardPendapatanPengeluaran(tahun);
+  res.send(data);
+});
+
+
+router.get('/peringkat-produk', async (req, res) => {
+  const { bulan, tahun, itemsPerPage, page } = req.query;
+  const data = await getDashboardPeringkatProduk(bulan, tahun, parseInt(itemsPerPage), parseInt(page));
+  res.json(data);
+});
+router.get("/peringkat-penjahit", async (req, res) => {
   try {
-
-    
-    // If the dashboard exists, delete it
-   await deleteDashboardById(parseInt(id))
-
-    res.json({ message: "dashboard deleted successfully" });
+    const { bulan, tahun, itemsPerPage, page } = req.query;
+    const data = await getPeringkatPenjahit(bulan, tahun, itemsPerPage, page);
+    res.json(data);
   } catch (error) {
-    console.error('Error deleting dashboard:', error);
-    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
+    console.error("Error fetching peringkat penjahit:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+router.get('/peringkat-sales', async (req, res) => {
+  const { bulan, tahun, itemsPerPage = 10, page = 1 } = req.query;
 
+  try {
+    const result = await getPeringkatSales(bulan, tahun, parseInt(itemsPerPage), parseInt(page));
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve sales ranking',
+      error: error.message,
+    });
+  }
+});
 module.exports = router;
