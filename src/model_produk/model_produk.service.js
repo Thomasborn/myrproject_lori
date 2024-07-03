@@ -36,7 +36,7 @@ const insertModelProduk = async (newModelProdukData)=>{
   return model_produk;
   
 };
-const updatedModelProduk = async (id,updatedModelProdukData)=>{
+const updateModelProduk = async (id,updatedModelProdukData)=>{
   const model_produk = await updateModelProdukRepo(id,updatedModelProdukData);
   return model_produk;
 };
@@ -49,7 +49,7 @@ module.exports = {
   getFotoProduk,
   getModelProdukById,
   insertModelProduk,
-  updatedModelProduk,
+  updateModelProduk,
   updatedFotoProduk,
   deleteModelProdukById,
   getAllModelProduk

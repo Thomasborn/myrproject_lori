@@ -49,39 +49,47 @@ router.get("/:id", async (req, res) => {
     });
   }
 });
+router.post("/", imageUpload, async (req, res) => {
+  try {
+    // Handle file upload if imageUpload middleware is used
+    const foto = req.files && req.files.length > 0 ? req.files : null;
 
+    // Extract and parse data from req.body
+    const data = {
+      deskripsi: req.body.deskripsi,
+      kategori: req.body.kategori,
+      nama: req.body.nama,
+      varian: req.body.varian, // No need to parse varian as it should be JSON object already
+      bahan: req.body.bahan,   // No need to parse bahan as it should be JSON object already
+      foto: foto,  // Attach foto to data
+    };
 
+    // Call your function to insert produk data
+    const produk = await insertDaftarProduk(data);
 
-
-  router.post("/", imageUpload, async (req, res) => {
-    try {
-    
-        const data = {
-          kode: req.body.kode,
-          nama: req.body.nama,
-          deskripsi: req.body.deskripsi,
-          kategori_id: req.body.kategori_id,
-          ukuran: req.body.ukuran,
-          biaya_jahit: req.body.biaya_jahit,
-          variasi: req.body.variasi,
-          hpp: req.body.hpp,
-          harga_jual: req.body.harga_jual,
-          model_produk_id: req.body.model_produk_id,
-          bahan_produk:  JSON.parse(req.body.bahan_produk),
-          foto: req.files, 
-        };
-        const produk = await insertDaftarProduk(data);
-      res.send(produk);
-    } catch (error) {
-      console.error('Error creating produk:', error);
-      res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
-    }
-  });
+    res.json(produk); // Send the inserted produk data as JSON response
+  } catch (error) {
+    console.error('Error creating produk:', error);
+    res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });
+  }
+});
   router.put("/:id", upload.none(),async (req, res) => {
-      const { id } = req.params;
-      const updatedDaftarProdukData = req.body;
+    
      
       try {
+        const { id } = req.params;
+        // Handle file upload if imageUpload middleware is used
+        const foto = req.files && req.files.length > 0 ? req.files : null;
+
+        // Extract and parse data from req.body
+        const updatedDaftarProdukData = {
+          deskripsi: req.body.deskripsi,
+          kategori: req.body.kategori,
+          nama: req.body.nama,
+          varian: req.body.varian, // No need to parse varian as it should be JSON object already
+          bahan: req.body.bahan,   // No need to parse bahan as it should be JSON object already
+          foto: foto,  // Attach foto to data
+        };
           // Check if the produk exists before attempting to update it
         const produk = await updatedDaftarProduk(parseInt(id),updatedDaftarProdukData)
     

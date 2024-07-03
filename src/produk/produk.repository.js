@@ -2,7 +2,9 @@
 const prisma = require("../db");
 
 const {
-  insertModelProduk
+  insertModelProduk,
+  updateModelProduk,
+  getModelProdukById
 } = require("../model_produk/model_produk.service");
 const findDetailModelProdukList = async (q = {}, page = 1, itemsPerPage = 10) => {
   // Fetch detail_model_produk data based on search criteria and pagination parameters
@@ -184,9 +186,97 @@ const findDaftarProduk = async ( q, kategori,outletId, page = 1, itemsPerPage = 
   }
 };
 
-
-
 const findDaftarProdukById = async (productId) => {
+  const product = await prisma.model_produk.findUnique({
+    where: {
+      id: productId,
+    },
+    include: {
+      foto_produk: true,
+      kategori: true,
+      detail_model_produk: {
+        include: {
+          bahan_produk: {
+            include: {
+              daftar_bahan: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!product) {
+    return {
+      success: false,
+      message: `Product with ID ${productId} not found`,
+      data: null,
+    };
+  }
+
+  // Calculate stok, hargaJualMin, and hargaJualMax based on detail_model_produk
+  let stok = 0;
+  let hargaJualMin = Infinity;
+  let hargaJualMax = -Infinity;
+
+  product.detail_model_produk.forEach((detail) => {
+    stok += detail.jumlah || 0;
+    if (detail.harga_jual < hargaJualMin) hargaJualMin = detail.harga_jual;
+    if (detail.harga_jual > hargaJualMax) hargaJualMax = detail.harga_jual;
+  });
+
+  // Map the product data to the desired format
+  const mappedProduct = {
+    stok,
+    hargaJualMin,
+    hargaJualMax,
+    id: product.id,
+    kode: product.kode,
+    nama: product.nama,
+    kategori: product.kategori.nama,
+    foto: product.foto_produk?.filepath || null,
+    deskripsi: product.deskripsi || null,
+    varian: product.detail_model_produk.map((detail) => {
+      let totalBiayaBahan = 0;
+
+      const bahanBiaya = detail.bahan_produk.map((bahan) => {
+        const biayaBahan = bahan.jumlah * bahan.daftar_bahan.harga;
+        totalBiayaBahan += biayaBahan;
+
+        return {
+          id: bahan.daftar_bahan.id,
+          nama: bahan.daftar_bahan.nama,
+          kategori: bahan.daftar_bahan.kategori,
+          kode: bahan.daftar_bahan.kode,
+          harga: bahan.daftar_bahan.harga,
+          jumlahPakai: bahan.jumlah,
+          satuan: bahan.daftar_bahan.satuan,
+          biayaBahan: biayaBahan,
+        };
+      });
+
+      return {
+        ukuran: detail.ukuran,
+        biayaJahit: detail.biaya_jahit,
+        hargaJual: detail.harga_jual,
+        stok: detail.jumlah || 0,
+        bahan: bahanBiaya,
+        totalBiayaBahan: totalBiayaBahan,
+        hpp: detail.hpp,
+      };
+    }),
+  };
+
+  return {
+    success: true,
+    message: `Data produk dengan ID ${productId} berhasil diperoleh`,
+    data: mappedProduct,
+  };
+};
+
+
+
+const findDaftarProdukByIdOld = async (productId) => {
   try {
     const produkOutlet = await prisma.produk_outlet.findFirst({
       where: {
@@ -268,91 +358,122 @@ const findDaftarProdukBySku = async (sku) => {
   return daftar_produk;
 };
 
-const getModelProdukByKode = async (kode) => {
+const getModelProdukByKode = async (nama) => {
   return await prisma.model_produk.findFirst({
     where: {
-      kode: kode,
+      kode: nama,
     },
   });
 };
 
 const insertDaftarProdukRepo = async (data) => {
-  // Insert model_produk and detail_model_produk
-      let model_produk_id;
-  
-      // Check if model_produk with given kode exists
-      const existingModel = await getModelProdukByKode(data.kode);
-  
-      if (existingModel) {
-        // If model_produk exists, use its id
-        model_produk_id = existingModel.id;
-      } else {
-        // If model_produk doesn't exist, insert a new one
-        const insert_model = await insertModelProduk(data);
-        model_produk_id = insert_model.id;
-      }
-  
-      // Insert detail_model_produk using the obtained model_produk_id
-      const insert_detail_model = await prisma.detail_model_produk.create({
-        data: {
-          ukuran: data.ukuran,
-          biaya_jahit: data.biaya_jahit,
-          hpp: data.hpp,
-          harga_jual: data.harga_jual,
-          model_produk_id: model_produk_id,
-          jumlah: data.jumlah || 0,
-        },
-      });
-  // const insert_model = await insertModelProduk(data);
+  // Check if model_produk with the given nama exists
+  const existingModel = await getModelProdukByKode(data.nama);
 
+  if (existingModel) {
+    // If model_produk exists, return a message indicating the product already exists
+    return {
+      success: false,
+      message: `Produk dengan kode ${existingModel.nama} sudah ada.`,
+      data: existingModel
+    };
+  } else {
+    // If model_produk doesn't exist, insert a new one
+    const insert_model = await insertModelProduk(data);
 
-  // Fetch the inserted data along with related information
-  const insertedData = await prisma.detail_model_produk.findUnique({
-    where: { id: insert_model.detail_model_produk.id },
-    include: {
-      model_produk: {
-        include: {
-          kategori: true,
-          foto_produk: true,
-        },
-      },
-      bahan_produk: {
-        include: {
-          daftar_bahan: true,
-        },
-      },
-    },
-  });
+    // Shape the response data to match the desired structure
+    const responseData = {
+      id: insert_model.model_produk.id,
+      kode: insert_model.model_produk.kode,
+      nama: insert_model.model_produk.nama,
+      kategori: data.kategori,
+      foto: insert_model.createdPhotos,
+      deskripsi: insert_model.model_produk.deskripsi,
+      varian: insert_model.createdVarian.map(variant => ({
+        ukuran: variant.createdVariant.ukuran,
+        biayaJahit: variant.createdVariant.biaya_jahit,
+        hargaJual: variant.createdVariant.harga_jual,
+        stok: data.varian.find(v => v.ukuran === variant.createdVariant.ukuran).stok,
+        bahan: variant.createdBahan.map(bahan => ({
+          id: bahan.daftar_bahan_id,
+          jumlahPakai: bahan.jumlah
+        }))
+      }))
+    };
 
-  
-  // Format the response
-  const response = {
-    id: insertedData.id,
-    kode: insertedData.model_produk.kode,
-    nama: insertedData.model_produk.nama,
-    kategori: insertedData.model_produk.kategori.nama,
-    foto: insertedData.model_produk.foto_produk.map(foto => foto.filepath),
-    deskripsi: insertedData.model_produk.deskripsi,
-    varian: [
-      {
-        ukuran: insertedData.ukuran,
-        biayaJahit: insertedData.biaya_jahit,
-        hargaJual: insertedData.harga_jual,
-        stok: insertedData.jumlah,
-        bahan: insertedData.bahan_produk.map(bahan => ({
-          id: bahan.daftar_bahan.id,
-          jumlahPakai: bahan.jumlah,
-        })),
-      },
-    ],
-  };
+    return {
+      success: true,
+      message: `Data produk berhasil ditambahkan dengan ID ${responseData.id}`,
+      data: responseData
+    };
+  }
+};
+const reshapeData = (data) => {
+  const varian = data.detail_model_produk.map(variant => ({
+    ukuran: variant.ukuran,
+    biayaJahit: variant.biaya_jahit,
+    hargaJual: variant.harga_jual,
+    stok: variant.jumlah,
+    bahan: Array.isArray(variant.bahan_produk) ? variant.bahan_produk.map(bahan => ({
+      id: bahan.daftar_bahan_id,
+      jumlahPakai: bahan.jumlah,
+    })) : [],
+  }));
 
   return {
-    success: true,
-    message: `Data produk berhasil ditambahkan dengan ID ${response.id}`,
-    data: response
+    id: data.id,
+    kode: data.kode,
+    nama: data.nama,
+    kategori: data.kategori ? data.kategori.nama : null,
+    foto: data.foto_produk ? data.foto_produk.map(photo => photo.filepath) : null,
+    deskripsi: data.deskripsi,
+    varian: varian,
   };
 };
+
+const updateDaftarProdukRepo = async (id, data) => {
+  try {
+    const existing_produk = await findDaftarProdukById(id);
+    if(existing_produk.success==false){
+      return {
+        success: false,
+        message: `Produk dengan ID: ${id} tidak ada di outlet manapun`,
+        data: null
+      };
+    }
+    // Update the model_produk with the new data
+
+    const result = await updateModelProduk(existing_produk.data.id, data);
+
+    // Check if the update was successful
+    if (!result.updatedModelProduk) {
+      return {
+        success: false,
+        message: `Gagal memperbarui produk dengan ID ${id}`,
+        data: null
+      };
+    }
+
+    // Reshape the updatedModelProduk data
+    const reshapedData = reshapeData(result.updatedModelProduk);
+
+    return {
+      success: true,
+      message: `Data produk dengan ID ${id} berhasil diperbarui`,
+      data: reshapedData
+    };
+  } catch (error) {
+    console.error(error);
+    throw new Error('Gagal memperbarui produk');
+  }
+};
+
+
+
+
+
+
+
 
 // const insertDaftarProdukRepo = async (data) => {
 //   const { sku, detail_model_produk_id } = data;
@@ -399,7 +520,7 @@ const insertDaftarProdukRepo = async (data) => {
 //   return formattedData;
 // };
 
-const updateDaftarProdukRepo = async (id,updatedProdukData) => {
+const updateDaftarProdukRepoOld = async (id,updatedProdukData) => {
   const daftarProduk = await prisma.daftar_produk.findUnique({
     where: { id },
     include: {

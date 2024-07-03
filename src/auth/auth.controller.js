@@ -51,7 +51,7 @@ router.post("/login",upload.none(), async(req, res)=> {
             httpOnly: true,
            
              });
-          res.json({ message: 'Logged in successfully', session, token });
+          res.json(session, token );
         } else {
           // User doesn't exist, authentication failed
           res.status(401).json({ message: 'User Tidak Ditemukan' });

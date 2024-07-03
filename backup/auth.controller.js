@@ -20,7 +20,7 @@ router.post("/login",upload.none(), async(req, res)=> {
  
   try {
     const { email, password } = req.body;
-    const hashedPassword = await authService.checkPasswordByEmail(email);
+    const hashedPassword = await authService.checkPpautasswordByEmail(email);
   
     if (hashedPassword) {
       // Verify the user's password

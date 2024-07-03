@@ -37,11 +37,6 @@ router.get("/:id", async (req, res) => {
       const newRestokBahanData = req.body;
       const restok_bahan = await insertRestokBahan(newRestokBahanData);
   
-      // Check if the response indicates a user not found error
-      if (!restok_bahan.success) {
-        return res.status(404).json(restok_bahan);
-      }
-  
       res.send(restok_bahan);
     } catch (error) {
       console.error('Error creating RestokBahan:', error);
@@ -56,9 +51,7 @@ router.get("/:id", async (req, res) => {
       try {
           // Check if the restok_bahan exists before attempting to update it
         const restok_bahan = await updatedRestokBahan(parseInt(id),updatedRestokBahanData)
-        if (!restok_bahan.success) {
-          return res.status(500).json(restok_bahan);
-        }
+
     res.send(restok_bahan);
 } catch (error) {
     console.error('Error updating restok_bahan:', error);
@@ -69,11 +62,7 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const result = await deleteRestokBahanById(parseInt(id));
-    if (result.success) {
-      res.json({ message: result.message });
-    } else {
-      res.status(404).json({ error: result.message });
-    }
+    return result;
   } catch (error) {
     console.error('Error deleting restok_bahan:', error);
     res.status(500).json({ error: 'Sedang terjadi kesalahan di server, silahkan coba beberapa saat lagi' });

@@ -62,7 +62,7 @@ router.use("/produk-stok-opname",ProdukStokOpnameController);
 router.use("/stok-produk",StokProdukController);
 
 //OPERASI ROUTES
-router.use("/operasi/produksi",ProduksiController);
+router.use("/operasi/produksi",verifyAccess,ProduksiController);
 router.use("/operasi/qc-produk",QcProdukController);
 router.use("/operasi/qc-bahan",QcBahanController);
 router.use("/operasi/penjualan",PenjualanController);
