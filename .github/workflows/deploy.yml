@@ -25,8 +25,7 @@ jobs:
 
    
 
-    - name: Build project
-      run: npm run build  # Adjust this if you use a different build command
+   
 
   deploy:
     runs-on: ubuntu-latest
