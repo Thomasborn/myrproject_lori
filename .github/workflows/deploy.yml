@@ -38,13 +38,13 @@ jobs:
 
     - name: Debug Environment Variables
       run: |
-        echo "SERVER_IP: ${{ secrets.SERVER_IP }}"
+        echo "Development SERVER_IP: ${{ secrets.DEV_SERVER_IP }}"
         echo "SSH_USERNAME: ${{ secrets.SSH_USERNAME }}"
-        echo "APP_PATH_DEV: ${{ secrets.APP_PATH_DEV }}"
+        echo "APP_PATH: ${{ secrets.APP_PATH_DEV }}"
 
     - name: Deploy to Development Server
       env:
-        SERVER_IP: ${{ secrets.SERVER_IP }}
+        SERVER_IP: ${{ secrets.DEV_SERVER_IP }}
         SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
         SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
         APP_PATH: ${{ secrets.APP_PATH_DEV }}
@@ -89,13 +89,13 @@ jobs:
 
     - name: Debug Environment Variables
       run: |
-        echo "SERVER_IP: ${{ secrets.SERVER_IP }}"
+        echo "Production SERVER_IP: ${{ secrets.PROD_SERVER_IP }}"
         echo "SSH_USERNAME: ${{ secrets.SSH_USERNAME }}"
-        echo "APP_PATH_PROD: ${{ secrets.APP_PATH_PROD }}"
+        echo "APP_PATH: ${{ secrets.APP_PATH_PROD }}"
 
     - name: Deploy to Production Server
       env:
-        SERVER_IP: ${{ secrets.SERVER_IP }}
+        SERVER_IP: ${{ secrets.PROD_SERVER_IP }}
         SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
         SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
         APP_PATH: ${{ secrets.APP_PATH_PROD }}
