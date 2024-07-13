@@ -41,7 +41,7 @@ jobs:
         SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
       run: |
         echo "Checking SSH connection to server..."
-        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $SSH_USERNAME@$SERVER_IP "echo SSH connection successful" || { echo "SSH connection failed"; exit 1; }
+        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o LogLevel=ERROR $SSH_USERNAME@$SERVER_IP "echo SSH connection successful" || { echo "SSH connection failed"; exit 1; }
 
     - name: Deploy to Server
       env:
@@ -63,11 +63,11 @@ jobs:
           echo "No deployment required for branch ${GITHUB_REF}"
           exit 0
         fi
-        
-        sshpass -p $SSH_PASSWORD ssh -tt -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP << 'EOF'
-          set -e
+
+        sshpass -p $SSH_PASSWORD ssh -tt -o StrictHostKeyChecking=no -o LogLevel=ERROR $SSH_USERNAME@$SERVER_IP <<EOF
+          set -e  # Exit on error
           echo "Checking if $APP_PATH is a Git repository..."
-          
+
           if [ -d "$APP_PATH/.git" ]; then
             echo "Git repository found. Pulling latest changes..."
             cd $APP_PATH || { echo "Failed to navigate to directory"; exit 1; }
