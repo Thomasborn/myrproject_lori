@@ -19,11 +19,10 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '14'
 
     - name: Install dependencies
       run: npm install
-
 
 
   deploy:
@@ -45,17 +44,24 @@ jobs:
         REPO_URL: ${{ secrets.REPO_URL }}
       run: |
         sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP <<EOF
-          if [ ! -d "$APP_PATH/.git" ]; then
-            echo "Git repository not found. Cloning repository..."
+          echo "Checking if $APP_PATH is a Git repository..."
+
+          if [ -d "$APP_PATH/.git" ]; then
+            echo "Git repository found. Pulling latest changes..."
+            cd $APP_PATH || { echo "Failed to navigate to directory"; exit 1; }
+            git pull origin main || { echo "Git pull failed"; exit 1; }
+          else
+            echo "No Git repository found. Cloning repository..."
+            if [ -d "$APP_PATH" ]; then
+              echo "Removing existing directory..."
+              rm -rf $APP_PATH
+            fi
             mkdir -p $APP_PATH
-            git clone $REPO_URL $APP_PATH
+            git clone $REPO_URL $APP_PATH || { echo "Git clone failed"; exit 1; }
           fi
 
           echo "Navigating to application directory..."
           cd $APP_PATH || { echo "Directory not found"; exit 1; }
-
-          echo "Pulling latest changes..."
-          git pull origin main || { echo "Git pull failed"; exit 1; }
 
           echo "Installing dependencies..."
           npm install || { echo "NPM install failed"; exit 1; }
