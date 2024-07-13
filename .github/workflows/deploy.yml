@@ -36,6 +36,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y sshpass
 
+    - name: Debug Environment Variables
+      run: |
+        echo "SERVER_IP: ${{ secrets.DEV_SERVER_IP }}"
+        echo "SSH_USERNAME: ${{ secrets.SSH_USERNAME }}"
+        echo "APP_PATH: ${{ secrets.APP_PATH_DEV }}"
+
     - name: Deploy to Development Server
       env:
         SERVER_IP: ${{ secrets.DEV_SERVER_IP }}
@@ -44,7 +50,7 @@ jobs:
         APP_PATH: ${{ secrets.APP_PATH_DEV }}
         REPO_URL: ${{ secrets.REPO_URL }}
       run: |
-        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP <<EOF
+        sshpass -p $SSH_PASSWORD ssh -tt -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP <<EOF
           echo "Checking if $APP_PATH is a Git repository..."
           
           if [ -d "$APP_PATH/.git" ]; then
@@ -81,6 +87,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y sshpass
 
+    - name: Debug Environment Variables
+      run: |
+        echo "SERVER_IP: ${{ secrets.PROD_SERVER_IP }}"
+        echo "SSH_USERNAME: ${{ secrets.SSH_USERNAME }}"
+        echo "APP_PATH: ${{ secrets.APP_PATH_PROD }}"
+
     - name: Deploy to Production Server
       env:
         SERVER_IP: ${{ secrets.PROD_SERVER_IP }}
@@ -89,7 +101,7 @@ jobs:
         APP_PATH: ${{ secrets.APP_PATH_PROD }}
         REPO_URL: ${{ secrets.REPO_URL }}
       run: |
-        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP <<EOF
+        sshpass -p $SSH_PASSWORD ssh -tt -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP <<EOF
           echo "Checking if $APP_PATH is a Git repository..."
           
           if [ -d "$APP_PATH/.git" ]; then
