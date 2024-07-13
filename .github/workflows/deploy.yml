@@ -19,12 +19,20 @@ jobs:
 
 
 
-    - name: Deploy to CloudPanel
+    - name: Start SSH agent
+      run: |
+        eval $(ssh-agent -s)
+    
+    - name: Add SSH key
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+
+    - name: Deploy to CloudPanel
+      env:
         SERVER_IP: ${{ secrets.SERVER_IP }}
         SERVER_USER: ${{ secrets.SERVER_USER }}
         APP_PATH: ${{ secrets.APP_PATH }}
       run: |
-        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
         ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cd $APP_PATH && git pull origin main && npm install && pm2 restart all"
