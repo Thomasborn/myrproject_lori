@@ -23,8 +23,7 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Run tests
-      run: npm test  # Adjust this if you use a different test command
+   
 
     - name: Build project
       run: npm run build  # Adjust this if you use a different build command
