@@ -66,9 +66,6 @@ jobs:
           echo "Installing dependencies..."
           npm install || { echo "NPM install failed"; exit 1; }
 
-          echo "Building project..."
-          npm run build || { echo "Build failed"; exit 1; }
-
           echo "Restarting application..."
           pm2 restart all || { echo "PM2 restart failed"; exit 1; }
 
