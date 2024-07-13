@@ -6,13 +6,20 @@ const verifyAccess = require("./middleware/access");
 const { PrismaClient } = require("@prisma/client");
 const prisma= new PrismaClient();
 const AuthController = require("./auth/auth.controller")
-const multer = require("multer");
-const upload = multer();
+const path = require('path');
+const fs = require('fs');
 const session = require('express-session');
-const router = require('./router/index')
+const router = require('./router/index');
+
+const publicDirectory = path.join(__dirname, 'public');
+fs.existsSync(publicDirectory) || fs.mkdirSync(publicDirectory);
+
 const  app = express();
+// const bodyParser = require('body-parser');
 dotenv.config();
+app.use(express.static(publicDirectory));
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
 const PORT = process.env.PORT;
 app.get("/api",(req,res) => {
     res.send("Hello World");
@@ -28,8 +35,13 @@ app.use(
     },
     })
   );
+
+  // app.use(bodyParser.json());
 app.use("/auth",AuthController);  
-app.use("/",verifyToken,verifyAccess,router);
+// app.use("/",router);
+app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use("/",router);
+
 // app.post("/produks", async (req, res) => {
 //     const newProdukData = req.body;
 //     try {

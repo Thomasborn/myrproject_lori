@@ -15,7 +15,11 @@ const {
 
 const router = express.Router();
 router.get("/",async (req,res) => {
-    const user =  await getusers();
+  const { searchCriteria, page = 1, itemsPerPage = 10 } = req.query;
+
+  // Parse search criteria if provided
+  const parsedSearchCriteria = searchCriteria ? JSON.parse(searchCriteria) : {};
+    const user =  await getusers(parsedSearchCriteria,parseInt(page),parseInt(itemsPerPage));
     res.send(user);
  });
 
@@ -48,17 +52,13 @@ router.post("/", upload.none(), async (req, res) => {
     
   
      
-      res.send({
-        
-        data:user,
-        message:"user berhasil ditambah success"
-      });
+      res.send(user);
     } catch (error) {
       console.error('Error creating user:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  router.patch("/:id", upload.none(),async (req, res) => {
+  router.put("/:id", upload.none(),async (req, res) => {
       const { id } = req.params;
       const updateduserData = req.body;
      
@@ -66,7 +66,7 @@ router.post("/", upload.none(), async (req, res) => {
           // Check if the user exists before attempting to update it
         const user = await updateduser(parseInt(id),updateduserData)
     
-    res.send({data:user, message: "user updated successfully" });
+    res.send(user);
 } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -78,9 +78,9 @@ router.delete("/:id", async (req, res) => {
 
     
     // If the user exists, delete it
-   await deleteuserById(parseInt(id))
+   const pengguna = await deleteuserById(parseInt(id))
 
-    res.json({ message: "user deleted successfully" });
+    res.json(pengguna);
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Internal Server Error' });

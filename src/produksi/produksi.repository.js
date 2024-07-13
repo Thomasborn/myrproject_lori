@@ -3,58 +3,67 @@ const prisma = require("../db");
 
 const findProduk = async () => {
   const produksi = await prisma.produksi.findMany({
-    include:{
-      kategori_produk:true,pembuat:true
+    include: {
+      // detail_model_produk: true,
+      detail_model_produk: {
+        include: {
+          // ukuran: true,
+          
+          model_produk: true,
+          // Add more specific fields here
+        }},
+      user: true
     }
+  // });
   });
 
   return produksi;
 };
 
 const findProduksiById = async (id) => {
-  const produksi = await prisma.produksi.findUnique({
+  const produksi = await prisma.produksi.findFirst({
     where: {
       id,
     },
+    include: {
+      // detail_model_produk: true,
+      detail_model_produk: {
+        include: {
+          // ukuran: true,
+          
+          model_produk: true,
+          // Add more specific fields here
+        }},
+      user: true
+    }
   });
   
   return produksi;
 };
 const insertProduksiRepo = async (newprodukData) => {
   
-  const mulai = new Date();
-  // You can format "mulai" as needed, e.g., to ISO string
-  const mulaiISO = mulai.toISOString();
-  // mulai = mulaiISO;
-  const selesai = "1970-01-01T00:00:00.000Z";
-  const kode_produk = newprodukData.kode_produk;
-  const jumlah = parseInt(newprodukData.jumlah);
-  const ukuran = (newprodukData.ukuran);
-  const biaya = parseFloat(newprodukData.biaya);
-  const warna = (newprodukData.warna);
-  const pembuat_id = parseInt(newprodukData.pembuat_id);
-  const kategori_produk_id = parseInt(newprodukData.kategori_produk_id);
-  const produksi = await prisma.produksi.create({
-    data: {
-       mulai, 
-       selesai,
-       kode_produk, 
-       jumlah,  
-       ukuran,  
-       warna,  
-       biaya,
-       pembuat: {
-        connect: {
-          id: pembuat_id, // Use the ID or other unique identifier
-        }},
-        kategori_produk:{
-          connect:{
-            id: kategori_produk_id,
-          }
-        }
-    },
-  });
-  return produksi
+
+    const {
+      produksi,
+      tanggal_mulai,
+      tanggal_selesai,
+      jumlah,
+      detail_model_produk_id,
+      user_id,
+    } = newprodukData;
+
+    const createdProduksi = await prisma.produksi.create({
+      data: {
+        produksi,
+        tanggal_mulai,
+        tanggal_selesai,
+        jumlah,
+        detail_model_produk_id,
+        user_id,
+      },
+    });
+
+  return createdProduksi
 }
 const updateProduksiRepo = async (id,updatedProduksiData) => {
         const existingProduksi = await prisma.produksi.findUnique({

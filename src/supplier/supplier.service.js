@@ -1,8 +1,8 @@
 const prisma = require("../db");
 const { findsupplier, findsupplierById, insertsupplierRepo, updatesupplierRepo, deletesupplierByIdRepo } = require("./supplier.repository");
 
-const getsuppliers = async () => {
-  const supplier = await findsupplier();
+const getsuppliers = async (searchCriteria, page = 1, itemsPerPage = 10) => {
+  const supplier = await findsupplier(searchCriteria, page, itemsPerPage);
 
   return supplier;
 };
@@ -18,9 +18,9 @@ const getsupplierById = async (id) => {
   return supplier;
 };
 const deletesupplierById = async (id) => {
-  await getsupplierById(id);
-  await deletesupplierByIdRepo(id)
- 
+  // await getsupplierById(id);
+ const supplier = await deletesupplierByIdRepo(id)
+ return supplier;
 };
 const insertsupplier = async (newsupplierData)=>{
   const supplier = await insertsupplierRepo(newsupplierData);

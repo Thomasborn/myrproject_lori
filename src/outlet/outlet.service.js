@@ -1,11 +1,10 @@
 const prisma = require("../db");
 const { findoutlet, findoutletById, insertoutletRepo, updateoutletRepo, deleteoutletByIdRepo } = require("./outlet.repository");
-
-const getoutlets = async () => {
-  const outlet = await findoutlet();
-
-  return outlet;
+const getoutlets = async (searchCriteria = {}, page = 1, itemsPerPage = 10) => {
+  const outlets = await findoutlet(searchCriteria, page, itemsPerPage);
+  return outlets;
 };
+
 
 
 const getoutletById = async (id) => {
@@ -18,9 +17,9 @@ const getoutletById = async (id) => {
   return outlet;
 };
 const deleteoutletById = async (id) => {
-  await getoutletById(id);
-  await deleteoutletByIdRepo(id)
- 
+  // await getoutletById(id);
+  const outlet = await deleteoutletByIdRepo(id)
+ return outlet;
 };
 const insertoutlet = async (newoutletData)=>{
   const outlet = await insertoutletRepo(newoutletData);

@@ -1,0 +1,9 @@
+async function calculateAverageHargaSatuan() {
+  const averageHargaSatuan = await prisma.restok.groupBy({
+    by: ['daftar_bahan_id'],
+    _avg: {
+      harga_satuan: true,
+    },
+  });
+  return averageHargaSatuan;
+}

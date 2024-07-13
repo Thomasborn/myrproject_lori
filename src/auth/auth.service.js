@@ -1,14 +1,15 @@
 // services/authService.js
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken');
-const secretKey = require('../secret_key/secret_key'); // Replace with your secret key
-const userRepository = require('./auth.repository'); // Import the user repository
+const bcrypt          = require('bcrypt')
+const jwt             = require('jsonwebtoken');
+const secretKey       = process.env.KEY; // Replace with your secret key
+// const secretKey = require('../secret_key/secret_key'); // Replace with your secret key
+const userRepository  = require('./auth.repository'); // Import the user repository
 
 
-const authenticateUser= async (username, password)=> {
+const authenticateUser= async (email, password)=> {
   try {
     // Implement the authentication logic using the user repository
-    const user = userRepository.findByUsernameAndPassword(username, password);
+    const user = userRepository.findByEmailAndPassword(email, password);
 
     if (!user) {
         throw new Error('Authentication failed');
@@ -17,14 +18,14 @@ const authenticateUser= async (username, password)=> {
     return user;
   } catch (error) {
    
-    console.error('Error in findByUsernameAndPassword:', error); // You can handle and log the error here or rethrow it
+    console.error('Error in findByEmailAndPassword:', error); // You can handle and log the error here or rethrow it
     throw error;
   }
 }
 
-function generateAuthToken(username) {
+function generateAuthToken(email) {
   try {
-    const token = jwt.sign({ username: username }, secretKey.Key);
+    const token = jwt.sign({ email: email }, secretKey);
     return token;
   } catch (error) {
     // You can handle and log the error here or rethrow it
@@ -33,7 +34,7 @@ function generateAuthToken(username) {
 }
 
 // Function to hash the user's password
-async function hashPassword(password) {
+const hashPassword= async (password)=> {
     try {
       // const saltRounds = bcrypt.genSalt(10); // The number of salt rounds (adjust as needed)
       const saltRounds = (10); // The number of salt rounds (adjust as needed)
@@ -45,27 +46,30 @@ async function hashPassword(password) {
   }
   
   // Function to register a user with a hashed password
-  const registerUser = async (username, password) => {
+  const registerUser = async (dataUser) => {
   
-      // Hash the user's password before storing it
-      const hashedPassword = await hashPassword(password);
   
-      // Create the user in the repository with the hashed password
-      const user = userRepository.createUser(username, hashedPassword);
-    
+      // membuat user pada repository
+      
+      const user = userRepository.createUser(dataUser);
       return user;
    
   }
-  const checkUser= async (username)=>{
-    const user = await userRepository.getForgetPassword(username)
+  const checkUser= async (email)=>{
+    const user = await userRepository.getForgetPassword(email)
+
+    return user;
+  }
+  const checkPasswordByEmail= async (email)=>{
+    const user = await userRepository.getHashedPasswordByemail(email)
 
     return user;
   }
   
   
   ;
-  const checkEmail= async (username)=>{
-    const user = await userRepository.findUserByUsername(username)
+  const checkEmail= async (email)=>{
+    const user = await userRepository.findUserByemail(email)
 
     return user;
   }
@@ -80,4 +84,4 @@ async function hashPassword(password) {
     }
   
   };
-  module.exports = { authenticateUser, generateAuthToken,registerUser,verifyPassword,checkUser ,checkEmail};
+  module.exports = { authenticateUser, generateAuthToken,registerUser,verifyPassword,checkUser ,checkEmail,hashPassword,checkPasswordByEmail};
