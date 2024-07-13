@@ -17,9 +17,7 @@ jobs:
       run: |
         npm install
 
-    - name: Build project
-      run: |
-        npm run build # Jika ada proses build
+
 
     - name: Deploy to CloudPanel
       env:
