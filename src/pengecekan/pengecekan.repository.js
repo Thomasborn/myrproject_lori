@@ -4,7 +4,7 @@ const prisma = require("../db");
 const findProduk = async () => {
   const pengecekans = await prisma.detail_pengecekan_produk.findMany({
     include: {
-      // Include related data from 'pengecekan_produk' and 'kondisi_produk'
+      // Include related data from 'pengecekan_produk' and 'kondisi_produk'ss
       pengecekan_produk: true,
       kondisi_produk: true,
     },
