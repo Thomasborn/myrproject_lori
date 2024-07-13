@@ -9,7 +9,7 @@ const findProduk = async () => {
       kondisi_produk: true,
     },
   });
-  //
+  ////
   // Now 'pengecekans' contains the details with related 'pengecekan_produk' and 'kondisi_produk'
   
   return pengecekans;
