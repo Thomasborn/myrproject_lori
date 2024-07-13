@@ -1,29 +1,43 @@
-name: Deploy to CloudPanel
 
 on:
   push:
     branches:
-      - main
+      - main  # Trigger on pushes to the main branch
+  pull_request:
+    branches:
+      - main  # Trigger on pull requests to the main branch
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '14'  # Specify Node.js version
+
     - name: Install dependencies
-      run: |
-        npm install
+      run: npm install
 
+    - name: Run tests
+      run: npm test  # Adjust this if you use a different test command
 
+    - name: Build project
+      run: npm run build  # Adjust this if you use a different build command
 
-    - name: Start SSH agent
-      run: |
-        eval $(ssh-agent -s)
-    
-    - name: Add SSH key
-         - name: Install sshpass
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build  # Ensure deployment only occurs after a successful build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install sshpass
       run: |
         sudo apt-get update
         sudo apt-get install -y sshpass
@@ -35,4 +49,4 @@ jobs:
         SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
         APP_PATH: ${{ secrets.APP_PATH }}
       run: |
-        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP "cd $APP_PATH && git pull origin main && npm install && pm2 restart all"
+        sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP "cd $APP_PATH && git pull origin main && npm install && npm run build && pm2 restart all"
