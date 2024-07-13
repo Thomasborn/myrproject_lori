@@ -64,7 +64,8 @@ jobs:
           exit 0
         fi
         
-        sshpass -p $SSH_PASSWORD ssh -tt -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP <<EOF
+        sshpass -p $SSH_PASSWORD ssh -tt -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP << 'EOF'
+          set -e
           echo "Checking if $APP_PATH is a Git repository..."
           
           if [ -d "$APP_PATH/.git" ]; then
@@ -88,4 +89,5 @@ jobs:
           npm install || { echo "NPM install failed"; exit 1; }
 
           echo "Deployment completed successfully!"
+          exit 0
         EOF
